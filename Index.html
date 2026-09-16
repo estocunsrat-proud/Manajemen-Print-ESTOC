@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manajemen Pemakaian Printer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0F3B5C;
+    --navy-deep: #0A2C46;
+    --gold: #B4882E;
+    --bg: #F5F6F8;
+    --surface: #FFFFFF;
+    --line: #E3E6EB;
+    --ink: #1B2430;
+    --ink-soft: #667085;
+    --warn: #B3261E;
+    --warn-soft: #FDECEA;
+    --ok: #1B7A45;
+    --ok-soft: #EAF6EF;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  h1, h2, h3 { font-family: 'Source Serif 4', Georgia, serif; margin: 0; }
+  .mono { font-variant-numeric: tabular-nums; }
+
+  /* ---------- LOGIN ---------- */
+  #loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+  }
+  .login-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 340px;
+    box-shadow: 0 20px 50px rgba(10, 44, 70, .28);
+  }
+  .login-card h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    margin: 0 0 4px;
+  }
+  .login-card p.sub {
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin: 0 0 22px;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  #app { display: none; min-height: 100vh; }
+  header.topbar {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+    color: #fff;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; white-space: nowrap; font-family: 'Source Serif 4', serif; }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 3px; background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Source Serif 4', serif; font-weight: 700; color: var(--navy-deep); font-size: 14px; flex: none;
+  }
+  .brand .stok-mini { font-family: 'Inter', sans-serif; font-weight: 500; color: #C9D6E3; font-size: 12px; }
+  header.topbar .spacer { flex: 1; }
+  select, input, textarea {
+    font-family: inherit;
+    font-size: 13.5px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  header.topbar select { border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.08); color: #fff; }
+  header.topbar select option { color: var(--ink); }
+  button {
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--navy);
+    background: var(--navy);
+    color: #fff;
+    cursor: pointer;
+  }
+  button.secondary { background: #fff; color: var(--navy); border-color: var(--line); }
+  header.topbar button.secondary { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.35); }
+  button.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
+  header.topbar button.ghost { color: #C9D6E3; border-color: rgba(255,255,255,.35); }
+  button.danger { background: var(--warn); border-color: var(--warn); }
+  button:disabled { opacity: .5; cursor: default; }
+
+  nav.tabs {
+    display: flex;
+    gap: 8px;
+    padding: 14px 20px;
+    background: var(--bg);
+    overflow-x: auto;
+  }
+  nav.tabs button {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    color: var(--ink-soft);
+    padding: 9px 18px;
+    white-space: nowrap;
+  }
+  nav.tabs button.active { color: #fff; background: var(--navy); border-color: var(--navy); }
+
+  main { max-width: 980px; margin: 0 auto; padding: 6px 20px 60px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(16,24,40,.04);
+  }
+  .card h2 { font-size: 15px; font-weight: 600; color: var(--navy-deep); margin: 0 0 14px; }
+  .card h3 { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; margin: 18px 0 10px; color: var(--ink-soft); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--ink-soft); font-weight: 600; font-size: 12px; }
+  td.num, th.num { text-align: right; }
+  .quota-ok { color: var(--ink-soft); }
+  .quota-full { color: var(--warn); font-weight: 700; }
+  tr.row-actions button { padding: 4px 10px; font-size: 12px; }
+
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+  .form-field { display: flex; flex-direction: column; gap: 4px; }
+  .form-field label { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .3px; }
+
+  .stok-hero {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    background: linear-gradient(135deg, var(--navy-deep), var(--navy));
+    color: #fff; border-radius: 14px; padding: 20px 22px;
+  }
+  .stok-hero .num { font-family: 'Source Serif 4', serif; font-size: 34px; font-weight: 600; }
+  .stok-hero .unit { color: #C9D6E3; font-size: 12px; text-transform: uppercase; font-weight: 700; letter-spacing: .3px; }
+
+  .msg { font-size: 12.5px; padding: 8px 10px; border-radius: 8px; margin-top: 8px; }
+  .msg.ok { background: var(--ok-soft); color: var(--ok); }
+  .msg.warn { background: var(--warn-soft); color: var(--warn); }
+  .msg.err { background: var(--warn-soft); color: var(--warn); }
+
+  .empty { color: var(--ink-soft); font-size: 13px; padding: 6px 0; }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>Manajemen Printer</h1>
+    <p class="sub">Masuk sebagai admin</p>
+    <div class="form-field" style="margin-bottom:14px;">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" style="width:100%">
+    </div>
+    <button id="loginBtn" style="width:100%">Masuk</button>
+    <div id="loginMsg" class="msg err" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><div class="mark">MP</div><div>Manajemen Printer<div class="stok-mini mono" id="stokMini"></div></div></div>
+    <select id="periodeSelect"></select>
+    <button class="secondary" id="btnTambahPeriode">+ Periode</button>
+    <div class="spacer"></div>
+    <button class="ghost" id="logoutBtn">Keluar</button>
+  </header>
+
+  <nav class="tabs">
+    <button data-tab="anggota" class="active">Anggota</button>
+    <button data-tab="pemakaian">Catat Pemakaian</button>
+    <button data-tab="penjualan">Penjualan</button>
+    <button data-tab="kertas">Kertas</button>
+  </nav>
+
+  <main>
+
+    <!-- ===== TAB ANGGOTA ===== -->
+    <section class="panel active" id="panel-anggota">
+      <div class="card">
+        <h2>Tambah anggota</h2>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Divisi / kelompok</label>
+            <input list="divisiList" id="newMemberDivisi" placeholder="Pilih atau ketik divisi baru">
+            <datalist id="divisiList"></datalist>
+          </div>
+          <div class="form-field">
+            <label>Nama anggota</label>
+            <input id="newMemberNama" placeholder="Nama lengkap">
+          </div>
+          <button id="btnAddMember">Tambah</button>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Tambah kolom bulan baru ke periode ini</label>
+            <input id="newBulanNama" placeholder="mis. Januari" style="width:180px">
+          </div>
+          <button class="secondary" id="btnAddBulan">Tambah bulan</button>
+        </div>
+        <div id="anggotaMsg"></div>
+      </div>
+      <div id="anggotaGroups"></div>
+    </section>
+
+    <!-- ===== TAB PEMAKAIAN ===== -->
+    <section class="panel" id="panel-pemakaian">
+      <div class="card">
+        <h2>Catat pemakaian anggota</h2>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-6px;">Kuota gratis 10 lembar/bulan. Kelebihan otomatis tercatat sebagai piutang di tab Penjualan.</p>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Nama anggota</label>
+            <select id="pmkAnggotaNama"></select>
+          </div>
+          <div class="form-field">
+            <label>Bulan</label>
+            <select id="pmkAnggotaBulan"></select>
+          </div>
+          <div class="form-field">
+            <label>Jumlah lembar</label>
+            <input type="number" min="1" id="pmkAnggotaJumlah" style="width:100px">
+          </div>
+          <button id="btnCatatAnggota">Catat</button>
+        </div>
+        <div id="pmkAnggotaMsg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Catat pemakaian divisi / panitia / lain-lain</h2>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-6px;">Tanpa batas kuota, tidak dikenakan biaya.</p>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Kategori</label>
+            <select id="pmkKategoriNama"></select>
+          </div>
+          <div class="form-field">
+            <label>Jumlah lembar</label>
+            <input type="number" min="1" id="pmkKategoriJumlah" style="width:100px">
+          </div>
+          <button id="btnCatatKategori">Catat</button>
+        </div>
+        <div id="pmkKategoriMsg"></div>
+        <h3>Rekap pemakaian per kategori</h3>
+        <table>
+          <thead><tr><th>Kategori</th><th class="num">Total lembar</th></tr></thead>
+          <tbody id="pemakaianKategoriTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== TAB PENJUALAN ===== -->
+    <section class="panel" id="panel-penjualan">
+      <div class="card">
+        <h2>Tambah pembayaran</h2>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-6px;">Untuk orang luar organisasi, atau pembayaran manual lainnya.</p>
+        <div class="form-row">
+          <div class="form-field"><label>Tanggal</label><input type="date" id="pjTanggal"></div>
+          <div class="form-field"><label>Nama</label><input id="pjNama" placeholder="Nama pembayar"></div>
+          <div class="form-field"><label>Print (lembar)</label><input type="number" min="0" id="pjPrint" style="width:90px" value="0"></div>
+          <div class="form-field"><label>Fotocopy (lembar)</label><input type="number" min="0" id="pjFotocopy" style="width:100px" value="0"></div>
+          <div class="form-field"><label>Total (Rp)</label><input type="number" min="0" id="pjTotal" style="width:110px"></div>
+          <button id="btnAddPenjualan">Simpan</button>
+        </div>
+        <div id="penjualanMsg"></div>
+      </div>
+      <div class="card">
+        <h2>Riwayat penjualan</h2>
+        <table>
+          <thead><tr><th>Tanggal</th><th>Nama</th><th class="num">Print</th><th class="num">Fotocopy</th><th class="num">Total</th><th>Ket.</th><th></th></tr></thead>
+          <tbody id="penjualanTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== TAB KERTAS ===== -->
+    <section class="panel" id="panel-kertas">
+      <div class="card">
+        <div class="stok-hero">
+        <div><div class="unit">Sisa stok kertas</div><div class="num mono" id="stokBesar">0</div></div>
+      </div>
+      </div>
+      <div class="card">
+        <h2>Isi ulang kertas</h2>
+        <div class="form-row">
+          <div class="form-field"><label>Tanggal</label><input type="date" id="kertasTanggal"></div>
+          <div class="form-field"><label>Jumlah kertas</label><input type="number" min="1" id="kertasJumlah" style="width:110px"></div>
+          <div class="form-field"><label>Keterangan (opsional)</label><input id="kertasKeterangan" placeholder="mis. beli 5 rim"></div>
+          <button id="btnAddKertas">Isi ulang</button>
+        </div>
+        <div id="kertasMsg"></div>
+      </div>
+      <div class="card">
+        <h2>Riwayat isi ulang</h2>
+        <table>
+          <thead><tr><th>Tanggal</th><th class="num">Jumlah</th><th>Keterangan</th></tr></thead>
+          <tbody id="kertasTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// ============ KONFIGURASI ============
+// GANTI dengan URL Web App hasil deploy Apps Script Anda (Deploy > New deployment > Web app)
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqxphpCthV6d198EzGbthSxzz9DHIe5vnn3xX3cfzlV4TvIcx2GtRwMUBnw7ivs6ds/exec';
+
+let state = { token: null, periode: null, data: null };
+
+// ============ PEMANGGIL API ============
+async function api(action, payload) {
+  const body = Object.assign({ action, token: state.token }, payload || {});
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'Terjadi kesalahan');
+  return json.data;
+}
+
+// ============ LOGIN ============
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  const password = document.getElementById('loginPassword').value;
+  const msg = document.getElementById('loginMsg');
+  msg.style.display = 'none';
+  try {
+    const res = await api('login', { password });
+    state.token = res.token;
+    localStorage.setItem('printerAdminToken', res.token);
+    await bootApp();
+  } catch (err) {
+    msg.textContent = err.message;
+    msg.style.display = 'block';
+  }
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('printerAdminToken');
+  state.token = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+});
+
+async function bootApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const info = await api('getPeriodeList');
+  state.periode = info.periodeAktif;
+  renderPeriodeSelect(info.periodeList, info.periodeAktif);
+  await loadData();
+}
+
+// coba pakai token tersimpan
+window.addEventListener('load', async () => {
+  const saved = localStorage.getItem('printerAdminToken');
+  if (saved) {
+    state.token = saved;
+    try { await bootApp(); } catch (e) { localStorage.removeItem('printerAdminToken'); }
+  }
+});
+
+// ============ PERIODE ============
+function renderPeriodeSelect(list, active) {
+  const sel = document.getElementById('periodeSelect');
+  sel.innerHTML = list.map(p => `<option value="${p}" ${p === active ? 'selected' : ''}>${p}</option>`).join('');
+}
+document.getElementById('periodeSelect').addEventListener('change', async (e) => {
+  state.periode = e.target.value;
+  await loadData();
+});
+document.getElementById('btnTambahPeriode').addEventListener('click', async () => {
+  const nama = prompt('Nama periode baru (mis. 2027):');
+  if (!nama) return;
+  const bulanStr = prompt('Daftar bulan awal, pisahkan koma (mis. Januari,Februari,Maret):', 'Januari');
+  if (!bulanStr) return;
+  const bulanAwal = bulanStr.split(',').map(s => s.trim()).filter(Boolean);
+  try {
+    const data = await api('addPeriode', { namaPeriode: nama, bulanAwal });
+    state.periode = data.periode;
+    const info = await api('getPeriodeList');
+    renderPeriodeSelect(info.periodeList, info.periodeAktif);
+    render(data);
+  } catch (err) { alert(err.message); }
+});
+
+// ============ LOAD DATA ============
+async function loadData() {
+  const data = await api('getData', { periode: state.periode });
+  render(data);
+}
+
+function render(data) {
+  state.data = data;
+  document.getElementById('stokMini').textContent = data.stokKertas + ' lembar kertas';
+  document.getElementById('stokBesar').textContent = data.stokKertas;
+
+  renderAnggota(data);
+  renderPemakaianForm(data);
+  renderPenjualan(data);
+  renderKertas(data);
+}
+
+// ============ TAB: ANGGOTA ============
+function renderAnggota(data) {
+  const divisiList = document.getElementById('divisiList');
+  divisiList.innerHTML = data.divisiGroups.map(g => `<option value="${escapeHtml(g.divisi)}">`).join('');
+
+  const wrap = document.getElementById('anggotaGroups');
+  if (data.divisiGroups.length === 0) {
+    wrap.innerHTML = '<div class="empty">Belum ada anggota di periode ini.</div>';
+    return;
+  }
+  wrap.innerHTML = data.divisiGroups.map(g => `
+    <div class="card">
+      <h2>${escapeHtml(g.divisi)} <span style="color:var(--ink-soft);font-weight:400;">(${g.anggota.length})</span></h2>
+      <table>
+        <thead><tr><th>No</th><th>Nama</th>${data.bulanList.map(b => `<th>${b}</th>`).join('')}<th></th></tr></thead>
+        <tbody>
+          ${g.anggota.map(a => `
+            <tr>
+              <td>${a.no}</td>
+              <td>${escapeHtml(a.nama)}</td>
+              ${data.bulanList.map(b => {
+                const j = a.jatah[b] || { terpakai: 0, batas: 10 };
+                const full = j.terpakai >= j.batas;
+                return `<td class="mono ${full ? 'quota-full' : 'quota-ok'}">${j.terpakai}/${j.batas}</td>`;
+              }).join('')}
+              <td class="row-actions">
+                <button class="ghost" onclick="editMemberPrompt('${escAttr(a.nama)}','${escAttr(g.divisi)}')">Edit</button>
+                <button class="danger" onclick="deleteMemberConfirm('${escAttr(a.nama)}')">Hapus</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `).join('');
+}
+
+document.getElementById('btnAddMember').addEventListener('click', async () => {
+  const divisi = document.getElementById('newMemberDivisi').value.trim();
+  const nama = document.getElementById('newMemberNama').value.trim();
+  const msg = document.getElementById('anggotaMsg');
+  if (!divisi || !nama) { showMsg(msg, 'Isi divisi dan nama terlebih dahulu.', 'err'); return; }
+  try {
+    const data = await api('addMember', { periode: state.periode, divisi, nama });
+    document.getElementById('newMemberNama').value = '';
+    showMsg(msg, `${nama} ditambahkan ke ${divisi}.`, 'ok');
+    render(data);
+  } catch (err) { showMsg(msg, err.message, 'err'); }
+});
+
+document.getElementById('btnAddBulan').addEventListener('click', async () => {
+  const namaBulan = document.getElementById('newBulanNama').value.trim();
+  const msg = document.getElementById('anggotaMsg');
+  if (!namaBulan) return;
+  try {
+    const data = await api('addBulan', { periode: state.periode, namaBulan });
+    document.getElementById('newBulanNama').value = '';
+    showMsg(msg, `Kolom bulan "${namaBulan}" ditambahkan.`, 'ok');
+    render(data);
+  } catch (err) { showMsg(msg, err.message, 'err'); }
+});
+
+async function editMemberPrompt(nama, divisiLama) {
+  const namaBaru = prompt('Nama baru:', nama);
+  if (namaBaru === null) return;
+  const divisiBaru = prompt('Divisi baru (kosongkan jika tidak pindah):', divisiLama);
+  try {
+    const data = await api('editMember', { periode: state.periode, nama, namaBaru, divisiBaru: divisiBaru || undefined });
+    render(data);
+  } catch (err) { alert(err.message); }
+}
+async function deleteMemberConfirm(nama) {
+  if (!confirm(`Hapus anggota "${nama}"?`)) return;
+  try {
+    const data = await api('deleteMember', { periode: state.periode, nama });
+    render(data);
+  } catch (err) { alert(err.message); }
+}
+
+// ============ TAB: PEMAKAIAN ============
+function renderPemakaianForm(data) {
+  const allMembers = [];
+  data.divisiGroups.forEach(g => g.anggota.forEach(a => allMembers.push(a.nama)));
+  const selNama = document.getElementById('pmkAnggotaNama');
+  selNama.innerHTML = allMembers.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+
+  const selBulan = document.getElementById('pmkAnggotaBulan');
+  selBulan.innerHTML = data.bulanList.map(b => `<option value="${b}">${b}</option>`).join('');
+
+  const selKategori = document.getElementById('pmkKategoriNama');
+  selKategori.innerHTML = data.pemakaianKategori.map(k => `<option value="${escapeHtml(k.kategori)}">${escapeHtml(k.kategori)}</option>`).join('');
+
+  const tbody = document.getElementById('pemakaianKategoriTable');
+  tbody.innerHTML = data.pemakaianKategori.map(k => `<tr><td>${escapeHtml(k.kategori)}</td><td class="num mono">${k.pemakaian}</td></tr>`).join('')
+    || '<tr><td colspan="2" class="empty">Belum ada data.</td></tr>';
+}
+
+document.getElementById('btnCatatAnggota').addEventListener('click', async () => {
+  const nama = document.getElementById('pmkAnggotaNama').value;
+  const bulan = document.getElementById('pmkAnggotaBulan').value;
+  const jumlah = Number(document.getElementById('pmkAnggotaJumlah').value);
+  const msg = document.getElementById('pmkAnggotaMsg');
+  if (!nama || !bulan || !jumlah) { showMsg(msg, 'Lengkapi nama, bulan, dan jumlah lembar.', 'err'); return; }
+  try {
+    const res = await api('catatPemakaianAnggota', { periode: state.periode, nama, bulan, jumlah });
+    document.getElementById('pmkAnggotaJumlah').value = '';
+    if (res.kelebihan > 0) {
+      showMsg(msg, `${res.gratis} lembar gratis, ${res.kelebihan} lembar kelebihan kuota tercatat di tab Penjualan — isi nominalnya di sana.`, 'warn');
+    } else {
+      showMsg(msg, `${res.gratis} lembar dicatat, masih dalam jatah gratis.`, 'ok');
+    }
+    render(res.data);
+  } catch (err) { showMsg(msg, err.message, 'err'); }
+});
+
+document.getElementById('btnCatatKategori').addEventListener('click', async () => {
+  const kategori = document.getElementById('pmkKategoriNama').value;
+  const jumlah = Number(document.getElementById('pmkKategoriJumlah').value);
+  const msg = document.getElementById('pmkKategoriMsg');
+  if (!kategori || !jumlah) { showMsg(msg, 'Lengkapi kategori dan jumlah lembar.', 'err'); return; }
+  try {
+    const data = await api('catatPemakaianKategori', { periode: state.periode, kategori, jumlah });
+    document.getElementById('pmkKategoriJumlah').value = '';
+    showMsg(msg, `${jumlah} lembar dicatat untuk ${kategori}.`, 'ok');
+    render(data);
+  } catch (err) { showMsg(msg, err.message, 'err'); }
+});
+
+// ============ TAB: PENJUALAN ============
+function renderPenjualan(data) {
+  const tbody = document.getElementById('penjualanTable');
+  tbody.innerHTML = data.penjualan.map(p => `
+    <tr>
+      <td>${escapeHtml(p.tanggal)}</td>
+      <td>${escapeHtml(p.nama)}</td>
+      <td class="num mono">${p.print}</td>
+      <td class="num mono">${p.fotocopy}</td>
+      <td class="num mono">${p.totalPemasukan === '' ? '<span style="color:var(--warn)">belum diisi</span>' : formatRupiah(p.totalPemasukan)}</td>
+      <td>${escapeHtml(p.keterangan || '')}</td>
+      <td class="row-actions">
+        <button class="ghost" onclick="editPenjualanPrompt(${p.id}, '${escAttr(p.totalPemasukan)}')">Edit</button>
+        <button class="danger" onclick="deletePenjualanConfirm(${p.id})">Hapus</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" class="empty">Belum ada data penjualan.</td></tr>';
+}
+
+document.getElementById('btnAddPenjualan').addEventListener('click', async () => {
+  const tanggal = document.getElementById('pjTanggal').value;
+  const nama = document.getElementById('pjNama').value.trim();
+  const print = document.getElementById('pjPrint').value;
+  const fotocopy = document.getElementById('pjFotocopy').value;
+  const totalPemasukan = document.getElementById('pjTotal').value;
+  const msg = document.getElementById('penjualanMsg');
+  if (!nama) { showMsg(msg, 'Isi nama pembayar.', 'err'); return; }
+  try {
+    const res = await api('addPenjualan', { periode: state.periode, tanggal, nama, print, fotocopy, totalPemasukan });
+    document.getElementById('pjNama').value = '';
+    document.getElementById('pjPrint').value = 0;
+    document.getElementById('pjFotocopy').value = 0;
+    document.getElementById('pjTotal').value = '';
+    showMsg(msg, 'Pembayaran dicatat.', 'ok');
+    render(res.data);
+  } catch (err) { showMsg(msg, err.message, 'err'); }
+});
+
+async function editPenjualanPrompt(id, totalLama) {
+  const nominal = prompt('Nominal total pemasukan (Rp):', totalLama === 'undefined' ? '' : totalLama);
+  if (nominal === null) return;
+  try {
+    const data = await api('editPenjualan', { periode: state.periode, id, totalPemasukan: nominal });
+    render(data);
+  } catch (err) { alert(err.message); }
+}
+async function deletePenjualanConfirm(id) {
+  if (!confirm('Hapus data penjualan ini?')) return;
+  try {
+    const data = await api('deletePenjualan', { periode: state.periode, id });
+    render(data);
+  } catch (err) { alert(err.message); }
+}
+
+// ============ TAB: KERTAS ============
+function renderKertas(data) {
+  const tbody = document.getElementById('kertasTable');
+  tbody.innerHTML = data.pengisianKertas.map(k => `
+    <tr><td>${escapeHtml(k.tanggal)}</td><td class="num mono">+${k.jumlah}</td><td>${escapeHtml(k.keterangan || '')}</td></tr>
+  `).join('') || '<tr><td colspan="3" class="empty">Belum ada riwayat isi ulang.</td></tr>';
+}
+
+document.getElementById('btnAddKertas').addEventListener('click', async () => {
+  const tanggal = document.getElementById('kertasTanggal').value;
+  const jumlah = Number(document.getElementById('kertasJumlah').value);
+  const keterangan = document.getElementById('kertasKeterangan').value.trim();
+  const msg = document.getElementById('kertasMsg');
+  if (!jumlah) { showMsg(msg, 'Isi jumlah kertas.', 'err'); return; }
+  try {
+    const data = await api('addPengisianKertas', { periode: state.periode, tanggal, jumlah, keterangan });
+    document.getElementById('kertasJumlah').value = '';
+    document.getElementById('kertasKeterangan').value = '';
+    showMsg(msg, `${jumlah} lembar kertas ditambahkan ke stok.`, 'ok');
+    render(data);
+  } catch (err) { showMsg(msg, err.message, 'err'); }
+});
+
+// ============ TABS ============
+document.querySelectorAll('nav.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ============ UTIL ============
+function showMsg(el, text, type) {
+  el.innerHTML = `<div class="msg ${type}">${escapeHtml(text)}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 6000);
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function escAttr(s) { return String(s == null ? '' : s).replace(/'/g, "\\'"); }
+function formatRupiah(n) { return 'Rp' + Number(n).toLocaleString('id-ID'); }
+</script>
+</body>
+</html>
