@@ -112,10 +112,9 @@
   .bar-row .bar-val.warn{ color:var(--amber); }
   .quota-chips{ display:flex; gap:5px; flex-wrap:wrap; flex:1 1 260px; }
   .quota-chip{
-    display:inline-flex; align-items:baseline; gap:3px; padding:3px 8px; border-radius:20px;
-    font-size:10.5px; font-weight:600; border:1px solid var(--line);
+    display:inline-flex; align-items:baseline; gap:3px; padding:3px 10px; border-radius:20px;
+    font-size:11px; font-weight:700; border:1px solid var(--line);
   }
-  .quota-chip .b{ opacity:.7; font-weight:500; }
   .quota-chip.penuh{ background:rgba(62,217,168,.14); color:var(--teal); border-color:rgba(62,217,168,.35); }
   .quota-chip.sedikit{ background:rgba(242,180,65,.14); color:var(--amber); border-color:rgba(242,180,65,.35); }
   .quota-chip.habis{ background:rgba(226,96,79,.14); color:var(--rust); border-color:rgba(226,96,79,.35); }
@@ -337,8 +336,6 @@
   <div class="modal-bg" id="modalPenjualan">
     <div class="modal">
       <h3 id="modalPenjualanTitle">Tambah pembayaran</h3>
-      <label>Tanggal</label>
-      <input type="date" id="pjTanggal">
       <label>Nama</label>
       <input type="text" id="pjNama" placeholder="Nama pembayar">
       <label>Print (lembar)</label>
@@ -374,8 +371,6 @@
       <input type="date" id="kertasTanggal">
       <label>Jumlah kertas</label>
       <input type="number" min="1" id="kertasJumlah">
-      <label>Keterangan (opsional)</label>
-      <input type="text" id="kertasKeterangan" placeholder="mis. beli 5 rim">
       <div class="modal-actions">
         <button class="cancel" id="cancelKertas">Batal</button>
         <button class="save" id="saveKertas">Isi ulang</button>
@@ -387,7 +382,7 @@
 
 <script>
   // GANTI dengan URL Web App hasil deploy Apps Script Anda (Deploy > New deployment > Web app)
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqxphpCthV6d198EzGbthSxzz9DHIe5vnn3xX3cfzlV4TvIcx2GtRwMUBnw7ivs6ds/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqxphpCthV6d198EzGbthSxzz9DHIe5vnn3xX3cfzlV4TvIcx2GtRwMUBnw7ivs6ds/exec;
 
   let token = null;
   let periodeList = [];
@@ -527,6 +522,15 @@
     wrap.innerHTML = '';
     if(totalAnggota === 0){ wrap.innerHTML = '<div class="empty-msg">Belum ada anggota di periode ini.</div>'; return; }
 
+    if(data.bulanList.length){
+      const legend = document.createElement('div');
+      legend.className = 'empty-msg';
+      legend.style.textAlign = 'left';
+      legend.style.padding = '0 0 10px';
+      legend.textContent = 'Urutan chip sisa jatah: ' + data.bulanList.join(' · ');
+      wrap.appendChild(legend);
+    }
+
     data.divisiGroups.forEach(g=>{
       if(g.anggota.length === 0) return;
       const title = document.createElement('div');
@@ -540,7 +544,7 @@
         const chips = data.bulanList.map(b=>{
           const j = a.jatah[b] || { terpakai:0, batas:10 };
           const sisa = j.batas - j.terpakai;
-          return `<span class="quota-chip ${quotaClass(sisa)}" title="Terpakai ${j.terpakai}/${j.batas}">${sisa}<span class="b">${esc(b.slice(0,3))}</span></span>`;
+          return `<span class="quota-chip ${quotaClass(sisa)}" title="${esc(b)}: terpakai ${j.terpakai}/${j.batas}">${sisa}</span>`;
         }).join('');
         row.innerHTML = `
           <span class="nama">${a.no}. ${esc(a.nama)}</span>
@@ -652,11 +656,36 @@
     `).join('') || '<div class="empty-msg">Belum ada data.</div>';
   }
 
+  const NAMA_BULAN = ['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
+  function monthIndex(namaBulan){
+    const i = NAMA_BULAN.indexOf(String(namaBulan).trim().toLowerCase());
+    return i === -1 ? null : i + 1; // 1-12, null kalau nama bulan tidak dikenali
+  }
+  // Bulan dianggap "sudah lewat" hanya kalau nama periode mengandung tahun 4 digit
+  // (mis. "2026") sehingga bisa dibandingkan dengan bulan berjalan saat ini.
+  function isBulanLewat(namaBulan){
+    const m = String(currentPeriode).match(/(\d{4})/);
+    const mi = monthIndex(namaBulan);
+    if(!m || mi === null) return false; // tidak bisa dipastikan -> jangan blokir
+    const periodeYear = Number(m[1]);
+    const now = new Date();
+    const nowYear = now.getFullYear();
+    const nowMonth = now.getMonth() + 1;
+    if(periodeYear < nowYear) return true;
+    if(periodeYear > nowYear) return false;
+    return mi < nowMonth;
+  }
+
   $('#openPemakaianAnggota').addEventListener('click', ()=>{
     const allMembers = [];
     data.divisiGroups.forEach(g => g.anggota.forEach(a => allMembers.push(a.nama)));
     $('#pmkAnggotaNama').innerHTML = allMembers.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
-    $('#pmkAnggotaBulan').innerHTML = data.bulanList.map(b => `<option value="${b}">${b}</option>`).join('');
+    $('#pmkAnggotaBulan').innerHTML = data.bulanList.map(b => {
+      const lewat = isBulanLewat(b);
+      return `<option value="${b}" ${lewat ? 'disabled' : ''}>${b}${lewat ? ' (sudah lewat)' : ''}</option>`;
+    }).join('');
+    const firstEnabled = data.bulanList.find(b => !isBulanLewat(b));
+    if(firstEnabled) $('#pmkAnggotaBulan').value = firstEnabled;
     $('#pmkAnggotaJumlah').value = '';
     $('#modalPemakaianAnggota').classList.add('show');
   });
@@ -666,6 +695,7 @@
     const bulan = $('#pmkAnggotaBulan').value;
     const jumlah = Number($('#pmkAnggotaJumlah').value);
     if(!nama || !bulan || !jumlah){ showToast('Lengkapi semua isian', 'err'); return; }
+    if(isBulanLewat(bulan)){ showToast('Bulan ini sudah lewat, tidak bisa dicatat', 'err'); return; }
     try{
       const res = await api('catatPemakaianAnggota', { periode: currentPeriode, nama, bulan, jumlah });
       $('#modalPemakaianAnggota').classList.remove('show');
@@ -702,7 +732,7 @@
     const wrap = $('#penjualanList');
     wrap.innerHTML = data.penjualan.map(p => `
       <div class="bar-row">
-        <span class="bar-name">${esc(p.nama)}<span class="bar-sub">${esc(p.tanggal)} · Print ${p.print} · Fotocopy ${p.fotocopy}${p.keterangan ? ' · ' + esc(p.keterangan) : ''}</span></span>
+        <span class="bar-name">${esc(p.nama)}<span class="bar-sub">Print ${p.print} · Fotocopy ${p.fotocopy}</span></span>
         <span class="bar-val ${p.totalPemasukan === '' ? 'warn' : ''}">${p.totalPemasukan === '' ? 'belum diisi' : fmtRp(p.totalPemasukan)}</span>
         <button class="icon-btn edit" title="Edit" data-id="${p.id}">✎</button>
         <button class="icon-btn del" title="Hapus" data-id="${p.id}">🗑</button>
@@ -716,7 +746,6 @@
   $('#openTambahPenjualan').addEventListener('click', ()=>{
     editPenjualanTarget = null;
     $('#modalPenjualanTitle').textContent = 'Tambah pembayaran';
-    $('#pjTanggal').value = new Date().toISOString().slice(0,10);
     $('#pjNama').value = ''; $('#pjPrint').value = 0; $('#pjFotocopy').value = 0; $('#pjTotal').value = '';
     $('#modalPenjualan').classList.add('show');
   });
@@ -725,14 +754,13 @@
     if(!p) return;
     editPenjualanTarget = { id };
     $('#modalPenjualanTitle').textContent = 'Edit pembayaran';
-    $('#pjTanggal').value = p.tanggal; $('#pjNama').value = p.nama;
+    $('#pjNama').value = p.nama;
     $('#pjPrint').value = p.print; $('#pjFotocopy').value = p.fotocopy;
     $('#pjTotal').value = p.totalPemasukan === '' ? '' : p.totalPemasukan;
     $('#modalPenjualan').classList.add('show');
   }
   $('#cancelPenjualan').addEventListener('click', ()=> $('#modalPenjualan').classList.remove('show'));
   $('#savePenjualan').addEventListener('click', async ()=>{
-    const tanggal = $('#pjTanggal').value;
     const nama = $('#pjNama').value.trim();
     const print = $('#pjPrint').value;
     const fotocopy = $('#pjFotocopy').value;
@@ -741,9 +769,9 @@
     try{
       let d;
       if(editPenjualanTarget){
-        d = await api('editPenjualan', { periode: currentPeriode, id: editPenjualanTarget.id, tanggal, nama, print, fotocopy, totalPemasukan });
+        d = await api('editPenjualan', { periode: currentPeriode, id: editPenjualanTarget.id, nama, print, fotocopy, totalPemasukan });
       } else {
-        const res = await api('addPenjualan', { periode: currentPeriode, tanggal, nama, print, fotocopy, totalPemasukan });
+        const res = await api('addPenjualan', { periode: currentPeriode, nama, print, fotocopy, totalPemasukan });
         d = res.data;
       }
       $('#modalPenjualan').classList.remove('show');
@@ -755,7 +783,7 @@
   function openHapusPenjualan(id){
     const p = data.penjualan.find(x => x.id === id);
     hapusPenjualanTarget = { id };
-    $('#hapusPenjualanNama').textContent = p ? `${p.nama} · ${p.tanggal}` : '';
+    $('#hapusPenjualanNama').textContent = p ? p.nama : '';
     $('#modalHapusPenjualan').classList.add('show');
   }
   $('#cancelHapusPenjualan').addEventListener('click', ()=> $('#modalHapusPenjualan').classList.remove('show'));
@@ -774,7 +802,7 @@
     const wrap = $('#kertasList');
     wrap.innerHTML = data.pengisianKertas.map(k => `
       <div class="bar-row">
-        <span class="bar-name">${esc(k.tanggal)}<span class="bar-sub">${esc(k.keterangan || '')}</span></span>
+        <span class="bar-name">${esc(k.tanggal)}</span>
         <span class="bar-val" style="color:var(--teal);">+${k.jumlah}</span>
       </div>
     `).join('') || '<div class="empty-msg">Belum ada riwayat isi ulang.</div>';
@@ -783,17 +811,15 @@
   $('#openTambahKertas').addEventListener('click', ()=>{
     $('#kertasTanggal').value = new Date().toISOString().slice(0,10);
     $('#kertasJumlah').value = '';
-    $('#kertasKeterangan').value = '';
     $('#modalKertas').classList.add('show');
   });
   $('#cancelKertas').addEventListener('click', ()=> $('#modalKertas').classList.remove('show'));
   $('#saveKertas').addEventListener('click', async ()=>{
     const tanggal = $('#kertasTanggal').value;
     const jumlah = Number($('#kertasJumlah').value);
-    const keterangan = $('#kertasKeterangan').value.trim();
     if(!jumlah){ showToast('Isi jumlah kertas', 'err'); return; }
     try{
-      const d = await api('addPengisianKertas', { periode: currentPeriode, tanggal, jumlah, keterangan });
+      const d = await api('addPengisianKertas', { periode: currentPeriode, tanggal, jumlah });
       $('#modalKertas').classList.remove('show');
       showToast(`${jumlah} lembar kertas ditambahkan ke stok`);
       applyData(d);
