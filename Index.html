@@ -5,665 +5,761 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manajemen Pemakaian Printer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --navy: #0F3B5C;
-    --navy-deep: #0A2C46;
-    --gold: #B4882E;
-    --bg: #F5F6F8;
-    --surface: #FFFFFF;
-    --line: #E3E6EB;
-    --ink: #1B2430;
-    --ink-soft: #667085;
-    --warn: #B3261E;
-    --warn-soft: #FDECEA;
-    --ok: #1B7A45;
-    --ok-soft: #EAF6EF;
-    --radius: 14px;
+  :root{
+    --navy-deep:#0A1931; --navy-panel:#132844; --navy-panel-2:#1C3B60;
+    --gold:#B3CFE5; --teal:#3ED9A8; --rust:#E2604F; --amber:#F2B441; --grey:#7C93AC;
+    --text-hi:#F6FAFD; --text-lo:#93ABC4; --line:#223A5A;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Inter', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--ink);
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background:radial-gradient(ellipse at top,#1A3457 0%,var(--navy-deep) 55%);
+    color:var(--text-hi); font-family:'Inter',sans-serif;
   }
-  h1, h2, h3 { font-family: 'Source Serif 4', Georgia, serif; margin: 0; }
-  .mono { font-variant-numeric: tabular-nums; }
+  h1,h2,h3{ font-family:'Oswald',sans-serif; margin:0; }
 
-  /* ---------- LOGIN ---------- */
-  #loginScreen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+  /* ---- LOGIN ---- */
+  #loginScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-box{
+    background:var(--navy-panel); border:1px solid var(--line); border-radius:14px;
+    padding:32px 28px; width:100%; max-width:340px; text-align:center;
   }
-  .login-card {
-    background: var(--surface);
-    border-radius: 16px;
-    padding: 36px 32px;
-    width: 100%;
-    max-width: 340px;
-    box-shadow: 0 20px 50px rgba(10, 44, 70, .28);
+  .login-box p.kicker{ color:var(--gold); font-size:12.5px; letter-spacing:.05em; margin:0 0 6px; }
+  .login-box h2{ font-size:22px; margin-bottom:18px; }
+  .login-box p.sub{ color:var(--text-lo); font-size:12.5px; }
+  .login-box input{
+    width:100%; background:var(--navy-deep); border:1px solid var(--line); border-radius:8px;
+    padding:11px 12px; color:var(--text-hi); font-size:14.5px; margin-bottom:12px; font-family:'Inter',sans-serif;
   }
-  .login-card h1 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--navy-deep);
-    margin: 0 0 4px;
+  .login-box input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .login-box button{
+    width:100%; background:var(--gold); color:#1A1204; border:none; border-radius:9px;
+    padding:12px; font-family:'Oswald',sans-serif; font-weight:600; font-size:14.5px; cursor:pointer;
   }
-  .login-card p.sub {
-    color: var(--ink-soft);
-    font-size: 13px;
-    margin: 0 0 22px;
+  .login-err{ color:var(--rust); font-size:13px; margin-top:10px; min-height:16px; }
+
+  /* ---- APP SHELL ---- */
+  #app{ display:none; max-width:1080px; margin:0 auto; padding:20px 16px 60px; }
+  .topbar{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding-bottom:16px; border-bottom:1px solid var(--line); margin-bottom:14px; gap:10px; flex-wrap:wrap;
+  }
+  .topbar p.kicker{ color:var(--gold); font-size:12px; letter-spacing:.05em; margin:0 0 3px; }
+  .topbar h1{ font-size:20px; }
+  .logout{ background:none; border:1px solid var(--line); color:var(--text-lo); border-radius:8px;
+    padding:8px 14px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  .periode-bar{ display:flex; align-items:center; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+  .periode-bar label{ font-size:12px; color:var(--text-lo); }
+  .periode-bar select{
+    background:var(--navy-panel); border:1px solid var(--line); color:var(--text-hi);
+    border-radius:8px; padding:8px 10px; font-size:13.5px; font-family:'Inter',sans-serif;
+  }
+  .btn-ghost{
+    background:transparent; border:1px solid var(--line); color:var(--gold); border-radius:8px;
+    padding:8px 12px; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:600;
   }
 
-  /* ---------- LAYOUT ---------- */
-  #app { display: none; min-height: 100vh; }
-  header.topbar {
-    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
-    color: #fff;
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+  .tabs{ display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+  .tab-btn{
+    background:var(--navy-panel); border:1px solid var(--line); color:var(--text-lo);
+    padding:9px 16px; border-radius:9px; cursor:pointer; font-size:14px; font-family:'Inter',sans-serif; font-weight:600;
   }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; white-space: nowrap; font-family: 'Source Serif 4', serif; }
-  .brand .mark {
-    width: 30px; height: 30px; border-radius: 3px; background: var(--gold);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Source Serif 4', serif; font-weight: 700; color: var(--navy-deep); font-size: 14px; flex: none;
+  .tab-btn.active{ background:linear-gradient(180deg,var(--navy-panel-2),var(--navy-panel)); border-color:var(--gold); color:var(--text-hi); }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px; flex-wrap:wrap; }
+  .toolbar .info{ color:var(--text-lo); font-size:12.5px; }
+  .toolbar .btn-group{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn-primary{
+    background:var(--gold); color:#1A1204; border:none; border-radius:9px;
+    padding:10px 16px; font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer; white-space:nowrap;
   }
-  .brand .stok-mini { font-family: 'Inter', sans-serif; font-weight: 500; color: #C9D6E3; font-size: 12px; }
-  header.topbar .spacer { flex: 1; }
-  select, input, textarea {
-    font-family: inherit;
-    font-size: 13.5px;
-    padding: 8px 10px;
-    border: 1px solid var(--line);
-    border-radius: 7px;
-    background: var(--surface);
-    color: var(--ink);
+
+  .div-title{ color:var(--gold); font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; margin:20px 0 8px; }
+  .div-title:first-child{ margin-top:0; }
+
+  /* ---- stat card (stok kertas) ---- */
+  .stat-cards{ display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:18px; }
+  .stat-card{
+    background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
+    padding:18px 10px; text-align:center;
   }
-  header.topbar select { border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.08); color: #fff; }
-  header.topbar select option { color: var(--ink); }
-  button {
-    font-family: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: 20px;
-    border: 1px solid var(--navy);
-    background: var(--navy);
-    color: #fff;
-    cursor: pointer;
+  .stat-card .num{ font-family:'Oswald',sans-serif; font-weight:700; font-size:32px; color:var(--gold); }
+  .stat-card .lbl{ color:var(--text-lo); font-size:11px; margin-top:3px; text-transform:uppercase; letter-spacing:.04em; }
+
+  /* ---- baris (anggota / penjualan / kertas / kategori) ---- */
+  .bar-row, .anggota-row{
+    background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
+    padding:11px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
   }
-  button.secondary { background: #fff; color: var(--navy); border-color: var(--line); }
-  header.topbar button.secondary { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.35); }
-  button.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
-  header.topbar button.ghost { color: #C9D6E3; border-color: rgba(255,255,255,.35); }
-  button.danger { background: var(--warn); border-color: var(--warn); }
-  button:disabled { opacity: .5; cursor: default; }
-
-  nav.tabs {
-    display: flex;
-    gap: 8px;
-    padding: 14px 20px;
-    background: var(--bg);
-    overflow-x: auto;
+  .bar-row .bar-name, .anggota-row .nama{ font-weight:600; flex:1 1 40%; min-width:0; }
+  .bar-row .bar-name .bar-sub{ display:block; color:var(--text-lo); font-weight:400; font-size:11px; margin-top:2px; }
+  .bar-row .bar-val{ font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; }
+  .bar-row .bar-val.warn{ color:var(--amber); }
+  .quota-chips{ display:flex; gap:5px; flex-wrap:wrap; flex:1 1 260px; }
+  .quota-chip{
+    display:inline-flex; align-items:baseline; gap:3px; padding:3px 8px; border-radius:20px;
+    font-size:10.5px; font-weight:600; border:1px solid var(--line);
   }
-  nav.tabs button {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 22px;
-    color: var(--ink-soft);
-    padding: 9px 18px;
-    white-space: nowrap;
+  .quota-chip .b{ opacity:.7; font-weight:500; }
+  .quota-chip.penuh{ background:rgba(62,217,168,.14); color:var(--teal); border-color:rgba(62,217,168,.35); }
+  .quota-chip.sedikit{ background:rgba(242,180,65,.14); color:var(--amber); border-color:rgba(242,180,65,.35); }
+  .quota-chip.habis{ background:rgba(226,96,79,.14); color:var(--rust); border-color:rgba(226,96,79,.35); }
+
+  .icon-btn{
+    background:transparent; border:1px solid var(--line); color:var(--text-lo); border-radius:7px;
+    width:32px; height:32px; cursor:pointer; font-size:14px; flex:0 0 auto;
   }
-  nav.tabs button.active { color: #fff; background: var(--navy); border-color: var(--navy); }
+  .icon-btn.edit:hover{ border-color:var(--gold); color:var(--gold); }
+  .icon-btn.del:hover{ border-color:var(--rust); color:var(--rust); }
 
-  main { max-width: 980px; margin: 0 auto; padding: 6px 20px 60px; }
-  .panel { display: none; }
-  .panel.active { display: block; }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    margin-bottom: 18px;
-    box-shadow: 0 1px 2px rgba(16,24,40,.04);
+  /* ---- modal umum ---- */
+  .modal-bg{ display:none; position:fixed; inset:0; background:rgba(5,12,26,.65); z-index:70; align-items:center; justify-content:center; padding:16px; }
+  .modal-bg.show{ display:flex; }
+  .modal{ background:var(--navy-panel); border:1px solid var(--line); border-radius:14px; padding:22px; width:100%; max-width:360px; }
+  .modal h3{ font-size:16px; margin-bottom:6px; }
+  .modal p.sub{ font-size:12px; color:var(--text-lo); margin:0 0 14px; }
+  .modal label{ font-size:12px; color:var(--text-lo); display:block; margin-bottom:5px; }
+  .modal input, .modal select{
+    width:100%; background:var(--navy-deep); border:1px solid var(--line); border-radius:7px;
+    padding:9px 10px; color:var(--text-hi); font-size:13.5px; font-family:'Inter',sans-serif; margin-bottom:12px;
   }
-  .card h2 { font-size: 15px; font-weight: 600; color: var(--navy-deep); margin: 0 0 14px; }
-  .card h3 { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; margin: 18px 0 10px; color: var(--ink-soft); }
+  .modal-actions{ display:flex; gap:8px; margin-top:6px; }
+  .modal-actions button{ flex:1; border-radius:8px; padding:10px; font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer; border:1px solid var(--line); }
+  .modal-actions .cancel{ background:transparent; color:var(--text-lo); }
+  .modal-actions .save{ background:var(--gold); color:#1A1204; border:none; }
+  .modal-actions .danger{ background:var(--rust); color:#2A0906; border:none; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); }
-  th { color: var(--ink-soft); font-weight: 600; font-size: 12px; }
-  td.num, th.num { text-align: right; }
-  .quota-ok { color: var(--ink-soft); }
-  .quota-full { color: var(--warn); font-weight: 700; }
-  tr.row-actions button { padding: 4px 10px; font-size: 12px; }
-
-  .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
-  .form-field { display: flex; flex-direction: column; gap: 4px; }
-  .form-field label { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .3px; }
-
-  .stok-hero {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    background: linear-gradient(135deg, var(--navy-deep), var(--navy));
-    color: #fff; border-radius: 14px; padding: 20px 22px;
+  .empty-msg{ color:var(--text-lo); font-size:13.5px; padding:20px 0; text-align:center; }
+  .toast{
+    position:fixed; top:18px; left:50%; transform:translate(-50%,-140%);
+    background:var(--teal); color:#062A20; padding:11px 20px; border-radius:9px;
+    font-size:13.5px; font-weight:600; transition:transform .25s ease; z-index:90;
   }
-  .stok-hero .num { font-family: 'Source Serif 4', serif; font-size: 34px; font-weight: 600; }
-  .stok-hero .unit { color: #C9D6E3; font-size: 12px; text-transform: uppercase; font-weight: 700; letter-spacing: .3px; }
-
-  .msg { font-size: 12.5px; padding: 8px 10px; border-radius: 8px; margin-top: 8px; }
-  .msg.ok { background: var(--ok-soft); color: var(--ok); }
-  .msg.warn { background: var(--warn-soft); color: var(--warn); }
-  .msg.err { background: var(--warn-soft); color: var(--warn); }
-
-  .empty { color: var(--ink-soft); font-size: 13px; padding: 6px 0; }
+  .toast.err{ background:var(--rust); color:#2A0906; }
+  .toast.warn{ background:var(--amber); color:#3A2600; }
+  .toast.show{ transform:translate(-50%,0); }
 </style>
 </head>
 <body>
 
-<!-- ================= LOGIN ================= -->
-<div id="loginScreen">
-  <div class="login-card">
-    <h1>Manajemen Printer</h1>
-    <p class="sub">Masuk sebagai admin</p>
-    <div class="form-field" style="margin-bottom:14px;">
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="••••••••" style="width:100%">
+  <!-- ============== LOGIN ============== -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <p class="kicker">Manajemen Printer</p>
+      <h2>Login Admin</h2>
+      <input type="password" id="passwordInput" placeholder="Password admin">
+      <button id="loginBtn">Masuk</button>
+      <div class="login-err" id="loginErr"></div>
     </div>
-    <button id="loginBtn" style="width:100%">Masuk</button>
-    <div id="loginMsg" class="msg err" style="display:none;"></div>
   </div>
-</div>
 
-<!-- ================= APP ================= -->
-<div id="app">
-  <header class="topbar">
-    <div class="brand"><div class="mark">MP</div><div>Manajemen Printer<div class="stok-mini mono" id="stokMini"></div></div></div>
-    <select id="periodeSelect"></select>
-    <button class="secondary" id="btnTambahPeriode">+ Periode</button>
-    <div class="spacer"></div>
-    <button class="ghost" id="logoutBtn">Keluar</button>
-  </header>
+  <!-- ============== APP ============== -->
+  <div id="app">
+    <div class="topbar">
+      <div>
+        <p class="kicker">Manajemen Printer</p>
+        <h1>Dashboard Pemakaian Printer</h1>
+      </div>
+      <button class="logout" id="logoutBtn">Keluar</button>
+    </div>
 
-  <nav class="tabs">
-    <button data-tab="anggota" class="active">Anggota</button>
-    <button data-tab="pemakaian">Catat Pemakaian</button>
-    <button data-tab="penjualan">Penjualan</button>
-    <button data-tab="kertas">Kertas</button>
-  </nav>
+    <div class="periode-bar">
+      <label>Periode</label>
+      <select id="periodeSelect"></select>
+      <button class="btn-ghost" id="openPeriodeBaru">+ Periode baru</button>
+    </div>
 
-  <main>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="anggota">Anggota</button>
+      <button class="tab-btn" data-tab="pemakaian">Catat Pemakaian</button>
+      <button class="tab-btn" data-tab="penjualan">Penjualan</button>
+      <button class="tab-btn" data-tab="kertas">Kertas</button>
+    </div>
 
-    <!-- ===== TAB ANGGOTA ===== -->
-    <section class="panel active" id="panel-anggota">
-      <div class="card">
-        <h2>Tambah anggota</h2>
-        <div class="form-row">
-          <div class="form-field">
-            <label>Divisi / kelompok</label>
-            <input list="divisiList" id="newMemberDivisi" placeholder="Pilih atau ketik divisi baru">
-            <datalist id="divisiList"></datalist>
-          </div>
-          <div class="form-field">
-            <label>Nama anggota</label>
-            <input id="newMemberNama" placeholder="Nama lengkap">
-          </div>
-          <button id="btnAddMember">Tambah</button>
+    <!-- TAB: ANGGOTA -->
+    <div class="panel active" id="panel-anggota">
+      <div class="toolbar">
+        <span class="info" id="anggotaInfo"></span>
+        <div class="btn-group">
+          <button class="btn-ghost" id="openTambahBulan">+ Tambah bulan</button>
+          <button class="btn-primary" id="openTambahAnggota">+ Tambah anggota</button>
         </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label>Tambah kolom bulan baru ke periode ini</label>
-            <input id="newBulanNama" placeholder="mis. Januari" style="width:180px">
-          </div>
-          <button class="secondary" id="btnAddBulan">Tambah bulan</button>
-        </div>
-        <div id="anggotaMsg"></div>
       </div>
-      <div id="anggotaGroups"></div>
-    </section>
+      <div id="anggotaList"></div>
+    </div>
 
-    <!-- ===== TAB PEMAKAIAN ===== -->
-    <section class="panel" id="panel-pemakaian">
-      <div class="card">
-        <h2>Catat pemakaian anggota</h2>
-        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-6px;">Kuota gratis 10 lembar/bulan. Kelebihan otomatis tercatat sebagai piutang di tab Penjualan.</p>
-        <div class="form-row">
-          <div class="form-field">
-            <label>Nama anggota</label>
-            <select id="pmkAnggotaNama"></select>
-          </div>
-          <div class="form-field">
-            <label>Bulan</label>
-            <select id="pmkAnggotaBulan"></select>
-          </div>
-          <div class="form-field">
-            <label>Jumlah lembar</label>
-            <input type="number" min="1" id="pmkAnggotaJumlah" style="width:100px">
-          </div>
-          <button id="btnCatatAnggota">Catat</button>
+    <!-- TAB: PEMAKAIAN -->
+    <div class="panel" id="panel-pemakaian">
+      <div class="toolbar">
+        <span class="info">Kuota gratis 10 lembar/bulan per anggota. Kelebihan otomatis tercatat sebagai piutang di tab Penjualan.</span>
+        <div class="btn-group">
+          <button class="btn-ghost" id="openPemakaianKategori">+ Pemakaian divisi/panitia</button>
+          <button class="btn-primary" id="openPemakaianAnggota">+ Catat pemakaian anggota</button>
         </div>
-        <div id="pmkAnggotaMsg"></div>
       </div>
+      <div class="div-title">Rekap pemakaian per kategori (tanpa kuota)</div>
+      <div id="pemakaianKategoriList"></div>
+    </div>
 
-      <div class="card">
-        <h2>Catat pemakaian divisi / panitia / lain-lain</h2>
-        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-6px;">Tanpa batas kuota, tidak dikenakan biaya.</p>
-        <div class="form-row">
-          <div class="form-field">
-            <label>Kategori</label>
-            <select id="pmkKategoriNama"></select>
-          </div>
-          <div class="form-field">
-            <label>Jumlah lembar</label>
-            <input type="number" min="1" id="pmkKategoriJumlah" style="width:100px">
-          </div>
-          <button id="btnCatatKategori">Catat</button>
-        </div>
-        <div id="pmkKategoriMsg"></div>
-        <h3>Rekap pemakaian per kategori</h3>
-        <table>
-          <thead><tr><th>Kategori</th><th class="num">Total lembar</th></tr></thead>
-          <tbody id="pemakaianKategoriTable"></tbody>
-        </table>
+    <!-- TAB: PENJUALAN -->
+    <div class="panel" id="panel-penjualan">
+      <div class="toolbar">
+        <span class="info" id="penjualanInfo"></span>
+        <button class="btn-primary" id="openTambahPenjualan">+ Tambah pembayaran</button>
       </div>
-    </section>
+      <div id="penjualanList"></div>
+    </div>
 
-    <!-- ===== TAB PENJUALAN ===== -->
-    <section class="panel" id="panel-penjualan">
-      <div class="card">
-        <h2>Tambah pembayaran</h2>
-        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-6px;">Untuk orang luar organisasi, atau pembayaran manual lainnya.</p>
-        <div class="form-row">
-          <div class="form-field"><label>Tanggal</label><input type="date" id="pjTanggal"></div>
-          <div class="form-field"><label>Nama</label><input id="pjNama" placeholder="Nama pembayar"></div>
-          <div class="form-field"><label>Print (lembar)</label><input type="number" min="0" id="pjPrint" style="width:90px" value="0"></div>
-          <div class="form-field"><label>Fotocopy (lembar)</label><input type="number" min="0" id="pjFotocopy" style="width:100px" value="0"></div>
-          <div class="form-field"><label>Total (Rp)</label><input type="number" min="0" id="pjTotal" style="width:110px"></div>
-          <button id="btnAddPenjualan">Simpan</button>
-        </div>
-        <div id="penjualanMsg"></div>
+    <!-- TAB: KERTAS -->
+    <div class="panel" id="panel-kertas">
+      <div class="stat-cards">
+        <div class="stat-card"><div class="num" id="stokBesar">0</div><div class="lbl">Lembar kertas tersisa</div></div>
       </div>
-      <div class="card">
-        <h2>Riwayat penjualan</h2>
-        <table>
-          <thead><tr><th>Tanggal</th><th>Nama</th><th class="num">Print</th><th class="num">Fotocopy</th><th class="num">Total</th><th>Ket.</th><th></th></tr></thead>
-          <tbody id="penjualanTable"></tbody>
-        </table>
+      <div class="toolbar">
+        <span class="info">Riwayat isi ulang kertas</span>
+        <button class="btn-primary" id="openTambahKertas">+ Isi ulang kertas</button>
       </div>
-    </section>
+      <div id="kertasList"></div>
+    </div>
+  </div>
 
-    <!-- ===== TAB KERTAS ===== -->
-    <section class="panel" id="panel-kertas">
-      <div class="card">
-        <div class="stok-hero">
-        <div><div class="unit">Sisa stok kertas</div><div class="num mono" id="stokBesar">0</div></div>
+  <!-- modal: periode baru -->
+  <div class="modal-bg" id="modalPeriodeBaru">
+    <div class="modal">
+      <h3>Periode baru</h3>
+      <p class="sub">Daftar anggota disalin dari periode aktif. Sisa stok kertas periode lama ikut dibawa.</p>
+      <label>Nama periode</label>
+      <input type="text" id="newNamaPeriode" placeholder="mis. 2027">
+      <label>Bulan awal (pisahkan koma)</label>
+      <input type="text" id="newBulanAwal" placeholder="mis. Januari,Februari,Maret" value="Januari">
+      <div class="modal-actions">
+        <button class="cancel" id="cancelPeriodeBaru">Batal</button>
+        <button class="save" id="savePeriodeBaru">Buat</button>
       </div>
-      </div>
-      <div class="card">
-        <h2>Isi ulang kertas</h2>
-        <div class="form-row">
-          <div class="form-field"><label>Tanggal</label><input type="date" id="kertasTanggal"></div>
-          <div class="form-field"><label>Jumlah kertas</label><input type="number" min="1" id="kertasJumlah" style="width:110px"></div>
-          <div class="form-field"><label>Keterangan (opsional)</label><input id="kertasKeterangan" placeholder="mis. beli 5 rim"></div>
-          <button id="btnAddKertas">Isi ulang</button>
-        </div>
-        <div id="kertasMsg"></div>
-      </div>
-      <div class="card">
-        <h2>Riwayat isi ulang</h2>
-        <table>
-          <thead><tr><th>Tanggal</th><th class="num">Jumlah</th><th>Keterangan</th></tr></thead>
-          <tbody id="kertasTable"></tbody>
-        </table>
-      </div>
-    </section>
+    </div>
+  </div>
 
-  </main>
-</div>
+  <!-- modal: tambah bulan -->
+  <div class="modal-bg" id="modalTambahBulan">
+    <div class="modal">
+      <h3>Tambah kolom bulan</h3>
+      <p class="sub">Ditambahkan ke periode yang sedang dipilih, semua anggota mulai dari jatah penuh 10.</p>
+      <label>Nama bulan</label>
+      <input type="text" id="newNamaBulan" placeholder="mis. Januari">
+      <div class="modal-actions">
+        <button class="cancel" id="cancelTambahBulan">Batal</button>
+        <button class="save" id="saveTambahBulan">Tambah</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal: tambah/edit anggota -->
+  <div class="modal-bg" id="modalAnggota">
+    <div class="modal">
+      <h3 id="modalAnggotaTitle">Tambah anggota</h3>
+      <label>Nama</label>
+      <input type="text" id="anggotaNama" placeholder="Nama anggota">
+      <label>Divisi</label>
+      <input type="text" id="anggotaDivisi" list="divisiOptions" placeholder="Pilih atau ketik divisi baru">
+      <datalist id="divisiOptions"></datalist>
+      <div class="modal-actions">
+        <button class="cancel" id="cancelAnggota">Batal</button>
+        <button class="save" id="saveAnggota">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal: konfirmasi hapus anggota -->
+  <div class="modal-bg" id="modalHapusAnggota">
+    <div class="modal">
+      <h3>Hapus anggota?</h3>
+      <p class="sub" id="hapusAnggotaNama"></p>
+      <div class="modal-actions">
+        <button class="cancel" id="cancelHapusAnggota">Batal</button>
+        <button class="danger" id="confirmHapusAnggota">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal: catat pemakaian anggota -->
+  <div class="modal-bg" id="modalPemakaianAnggota">
+    <div class="modal">
+      <h3>Catat pemakaian anggota</h3>
+      <p class="sub">Kelebihan dari jatah 10/bulan otomatis masuk ke tab Penjualan.</p>
+      <label>Nama anggota</label>
+      <select id="pmkAnggotaNama"></select>
+      <label>Bulan</label>
+      <select id="pmkAnggotaBulan"></select>
+      <label>Jumlah lembar</label>
+      <input type="number" min="1" id="pmkAnggotaJumlah">
+      <div class="modal-actions">
+        <button class="cancel" id="cancelPemakaianAnggota">Batal</button>
+        <button class="save" id="savePemakaianAnggota">Catat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal: catat pemakaian kategori -->
+  <div class="modal-bg" id="modalPemakaianKategori">
+    <div class="modal">
+      <h3>Catat pemakaian divisi/panitia/lain-lain</h3>
+      <p class="sub">Tanpa batas kuota, tidak dikenakan biaya.</p>
+      <label>Kategori</label>
+      <select id="pmkKategoriNama"></select>
+      <label>Jumlah lembar</label>
+      <input type="number" min="1" id="pmkKategoriJumlah">
+      <div class="modal-actions">
+        <button class="cancel" id="cancelPemakaianKategori">Batal</button>
+        <button class="save" id="savePemakaianKategori">Catat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal: tambah/edit penjualan -->
+  <div class="modal-bg" id="modalPenjualan">
+    <div class="modal">
+      <h3 id="modalPenjualanTitle">Tambah pembayaran</h3>
+      <label>Tanggal</label>
+      <input type="date" id="pjTanggal">
+      <label>Nama</label>
+      <input type="text" id="pjNama" placeholder="Nama pembayar">
+      <label>Print (lembar)</label>
+      <input type="number" min="0" id="pjPrint" value="0">
+      <label>Fotocopy (lembar)</label>
+      <input type="number" min="0" id="pjFotocopy" value="0">
+      <label>Total pemasukan (Rp)</label>
+      <input type="number" min="0" id="pjTotal" placeholder="kosongkan jika belum bayar">
+      <div class="modal-actions">
+        <button class="cancel" id="cancelPenjualan">Batal</button>
+        <button class="save" id="savePenjualan">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal: konfirmasi hapus penjualan -->
+  <div class="modal-bg" id="modalHapusPenjualan">
+    <div class="modal">
+      <h3>Hapus data penjualan?</h3>
+      <p class="sub" id="hapusPenjualanNama"></p>
+      <div class="modal-actions">
+        <button class="cancel" id="cancelHapusPenjualan">Batal</button>
+        <button class="danger" id="confirmHapusPenjualan">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal: isi ulang kertas -->
+  <div class="modal-bg" id="modalKertas">
+    <div class="modal">
+      <h3>Isi ulang kertas</h3>
+      <label>Tanggal</label>
+      <input type="date" id="kertasTanggal">
+      <label>Jumlah kertas</label>
+      <input type="number" min="1" id="kertasJumlah">
+      <label>Keterangan (opsional)</label>
+      <input type="text" id="kertasKeterangan" placeholder="mis. beli 5 rim">
+      <div class="modal-actions">
+        <button class="cancel" id="cancelKertas">Batal</button>
+        <button class="save" id="saveKertas">Isi ulang</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
 
 <script>
-// ============ KONFIGURASI ============
-// GANTI dengan URL Web App hasil deploy Apps Script Anda (Deploy > New deployment > Web app)
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqxphpCthV6d198EzGbthSxzz9DHIe5vnn3xX3cfzlV4TvIcx2GtRwMUBnw7ivs6ds/exec';
+  // GANTI dengan URL Web App hasil deploy Apps Script Anda (Deploy > New deployment > Web app)
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_DEPLOYMENT_ID/exec';
 
-let state = { token: null, periode: null, data: null };
+  let token = null;
+  let periodeList = [];
+  let currentPeriode = null;
+  let data = { bulanList: [], divisiGroups: [], pemakaianKategori: [], penjualan: [], pengisianKertas: [], stokKertas: 0 };
+  let editAnggotaTarget = null;   // { nama, divisi } saat edit, null saat tambah
+  let hapusAnggotaTarget = null;  // { nama }
+  let editPenjualanTarget = null; // { id } saat edit, null saat tambah
+  let hapusPenjualanTarget = null;// { id }
 
-// ============ PEMANGGIL API ============
-async function api(action, payload) {
-  const body = Object.assign({ action, token: state.token }, payload || {});
-  const res = await fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(body)
-  });
-  const json = await res.json();
-  if (!json.ok) throw new Error(json.error || 'Terjadi kesalahan');
-  return json.data;
-}
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-// ============ LOGIN ============
-document.getElementById('loginBtn').addEventListener('click', doLogin);
-document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-
-async function doLogin() {
-  const password = document.getElementById('loginPassword').value;
-  const msg = document.getElementById('loginMsg');
-  msg.style.display = 'none';
-  try {
-    const res = await api('login', { password });
-    state.token = res.token;
-    localStorage.setItem('printerAdminToken', res.token);
-    await bootApp();
-  } catch (err) {
-    msg.textContent = err.message;
-    msg.style.display = 'block';
+  function showToast(msg, type){
+    const t = $('#toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (type ? ' ' + type : '');
+    setTimeout(()=> t.classList.remove('show'), 2800);
   }
-}
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtRp(n){ return 'Rp' + Number(n).toLocaleString('id-ID'); }
 
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  localStorage.removeItem('printerAdminToken');
-  state.token = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-});
-
-async function bootApp() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  const info = await api('getPeriodeList');
-  state.periode = info.periodeAktif;
-  renderPeriodeSelect(info.periodeList, info.periodeAktif);
-  await loadData();
-}
-
-// coba pakai token tersimpan
-window.addEventListener('load', async () => {
-  const saved = localStorage.getItem('printerAdminToken');
-  if (saved) {
-    state.token = saved;
-    try { await bootApp(); } catch (e) { localStorage.removeItem('printerAdminToken'); }
+  async function api(action, payload){
+    const body = Object.assign({ action, token }, payload || {});
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'Terjadi kesalahan');
+    return json.data;
   }
-});
 
-// ============ PERIODE ============
-function renderPeriodeSelect(list, active) {
-  const sel = document.getElementById('periodeSelect');
-  sel.innerHTML = list.map(p => `<option value="${p}" ${p === active ? 'selected' : ''}>${p}</option>`).join('');
-}
-document.getElementById('periodeSelect').addEventListener('change', async (e) => {
-  state.periode = e.target.value;
-  await loadData();
-});
-document.getElementById('btnTambahPeriode').addEventListener('click', async () => {
-  const nama = prompt('Nama periode baru (mis. 2027):');
-  if (!nama) return;
-  const bulanStr = prompt('Daftar bulan awal, pisahkan koma (mis. Januari,Februari,Maret):', 'Januari');
-  if (!bulanStr) return;
-  const bulanAwal = bulanStr.split(',').map(s => s.trim()).filter(Boolean);
-  try {
-    const data = await api('addPeriode', { namaPeriode: nama, bulanAwal });
-    state.periode = data.periode;
-    const info = await api('getPeriodeList');
-    renderPeriodeSelect(info.periodeList, info.periodeAktif);
-    render(data);
-  } catch (err) { alert(err.message); }
-});
+  // ---- LOGIN ----
+  $('#loginBtn').addEventListener('click', doLogin);
+  $('#passwordInput').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doLogin(); });
 
-// ============ LOAD DATA ============
-async function loadData() {
-  const data = await api('getData', { periode: state.periode });
-  render(data);
-}
-
-function render(data) {
-  state.data = data;
-  document.getElementById('stokMini').textContent = data.stokKertas + ' lembar kertas';
-  document.getElementById('stokBesar').textContent = data.stokKertas;
-
-  renderAnggota(data);
-  renderPemakaianForm(data);
-  renderPenjualan(data);
-  renderKertas(data);
-}
-
-// ============ TAB: ANGGOTA ============
-function renderAnggota(data) {
-  const divisiList = document.getElementById('divisiList');
-  divisiList.innerHTML = data.divisiGroups.map(g => `<option value="${escapeHtml(g.divisi)}">`).join('');
-
-  const wrap = document.getElementById('anggotaGroups');
-  if (data.divisiGroups.length === 0) {
-    wrap.innerHTML = '<div class="empty">Belum ada anggota di periode ini.</div>';
-    return;
-  }
-  wrap.innerHTML = data.divisiGroups.map(g => `
-    <div class="card">
-      <h2>${escapeHtml(g.divisi)} <span style="color:var(--ink-soft);font-weight:400;">(${g.anggota.length})</span></h2>
-      <table>
-        <thead><tr><th>No</th><th>Nama</th>${data.bulanList.map(b => `<th>${b}</th>`).join('')}<th></th></tr></thead>
-        <tbody>
-          ${g.anggota.map(a => `
-            <tr>
-              <td>${a.no}</td>
-              <td>${escapeHtml(a.nama)}</td>
-              ${data.bulanList.map(b => {
-                const j = a.jatah[b] || { terpakai: 0, batas: 10 };
-                const full = j.terpakai >= j.batas;
-                return `<td class="mono ${full ? 'quota-full' : 'quota-ok'}">${j.terpakai}/${j.batas}</td>`;
-              }).join('')}
-              <td class="row-actions">
-                <button class="ghost" onclick="editMemberPrompt('${escAttr(a.nama)}','${escAttr(g.divisi)}')">Edit</button>
-                <button class="danger" onclick="deleteMemberConfirm('${escAttr(a.nama)}')">Hapus</button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `).join('');
-}
-
-document.getElementById('btnAddMember').addEventListener('click', async () => {
-  const divisi = document.getElementById('newMemberDivisi').value.trim();
-  const nama = document.getElementById('newMemberNama').value.trim();
-  const msg = document.getElementById('anggotaMsg');
-  if (!divisi || !nama) { showMsg(msg, 'Isi divisi dan nama terlebih dahulu.', 'err'); return; }
-  try {
-    const data = await api('addMember', { periode: state.periode, divisi, nama });
-    document.getElementById('newMemberNama').value = '';
-    showMsg(msg, `${nama} ditambahkan ke ${divisi}.`, 'ok');
-    render(data);
-  } catch (err) { showMsg(msg, err.message, 'err'); }
-});
-
-document.getElementById('btnAddBulan').addEventListener('click', async () => {
-  const namaBulan = document.getElementById('newBulanNama').value.trim();
-  const msg = document.getElementById('anggotaMsg');
-  if (!namaBulan) return;
-  try {
-    const data = await api('addBulan', { periode: state.periode, namaBulan });
-    document.getElementById('newBulanNama').value = '';
-    showMsg(msg, `Kolom bulan "${namaBulan}" ditambahkan.`, 'ok');
-    render(data);
-  } catch (err) { showMsg(msg, err.message, 'err'); }
-});
-
-async function editMemberPrompt(nama, divisiLama) {
-  const namaBaru = prompt('Nama baru:', nama);
-  if (namaBaru === null) return;
-  const divisiBaru = prompt('Divisi baru (kosongkan jika tidak pindah):', divisiLama);
-  try {
-    const data = await api('editMember', { periode: state.periode, nama, namaBaru, divisiBaru: divisiBaru || undefined });
-    render(data);
-  } catch (err) { alert(err.message); }
-}
-async function deleteMemberConfirm(nama) {
-  if (!confirm(`Hapus anggota "${nama}"?`)) return;
-  try {
-    const data = await api('deleteMember', { periode: state.periode, nama });
-    render(data);
-  } catch (err) { alert(err.message); }
-}
-
-// ============ TAB: PEMAKAIAN ============
-function renderPemakaianForm(data) {
-  const allMembers = [];
-  data.divisiGroups.forEach(g => g.anggota.forEach(a => allMembers.push(a.nama)));
-  const selNama = document.getElementById('pmkAnggotaNama');
-  selNama.innerHTML = allMembers.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
-
-  const selBulan = document.getElementById('pmkAnggotaBulan');
-  selBulan.innerHTML = data.bulanList.map(b => `<option value="${b}">${b}</option>`).join('');
-
-  const selKategori = document.getElementById('pmkKategoriNama');
-  selKategori.innerHTML = data.pemakaianKategori.map(k => `<option value="${escapeHtml(k.kategori)}">${escapeHtml(k.kategori)}</option>`).join('');
-
-  const tbody = document.getElementById('pemakaianKategoriTable');
-  tbody.innerHTML = data.pemakaianKategori.map(k => `<tr><td>${escapeHtml(k.kategori)}</td><td class="num mono">${k.pemakaian}</td></tr>`).join('')
-    || '<tr><td colspan="2" class="empty">Belum ada data.</td></tr>';
-}
-
-document.getElementById('btnCatatAnggota').addEventListener('click', async () => {
-  const nama = document.getElementById('pmkAnggotaNama').value;
-  const bulan = document.getElementById('pmkAnggotaBulan').value;
-  const jumlah = Number(document.getElementById('pmkAnggotaJumlah').value);
-  const msg = document.getElementById('pmkAnggotaMsg');
-  if (!nama || !bulan || !jumlah) { showMsg(msg, 'Lengkapi nama, bulan, dan jumlah lembar.', 'err'); return; }
-  try {
-    const res = await api('catatPemakaianAnggota', { periode: state.periode, nama, bulan, jumlah });
-    document.getElementById('pmkAnggotaJumlah').value = '';
-    if (res.kelebihan > 0) {
-      showMsg(msg, `${res.gratis} lembar gratis, ${res.kelebihan} lembar kelebihan kuota tercatat di tab Penjualan — isi nominalnya di sana.`, 'warn');
-    } else {
-      showMsg(msg, `${res.gratis} lembar dicatat, masih dalam jatah gratis.`, 'ok');
+  async function doLogin(){
+    const password = $('#passwordInput').value.trim();
+    if(!password) return;
+    $('#loginErr').textContent = 'Memeriksa...';
+    try{
+      const res = await api('login', { password });
+      token = res.token;
+      localStorage.setItem('printerAdminToken', token);
+      await bootApp();
+    } catch(err){
+      $('#loginErr').textContent = err.message;
+      token = null;
     }
-    render(res.data);
-  } catch (err) { showMsg(msg, err.message, 'err'); }
-});
-
-document.getElementById('btnCatatKategori').addEventListener('click', async () => {
-  const kategori = document.getElementById('pmkKategoriNama').value;
-  const jumlah = Number(document.getElementById('pmkKategoriJumlah').value);
-  const msg = document.getElementById('pmkKategoriMsg');
-  if (!kategori || !jumlah) { showMsg(msg, 'Lengkapi kategori dan jumlah lembar.', 'err'); return; }
-  try {
-    const data = await api('catatPemakaianKategori', { periode: state.periode, kategori, jumlah });
-    document.getElementById('pmkKategoriJumlah').value = '';
-    showMsg(msg, `${jumlah} lembar dicatat untuk ${kategori}.`, 'ok');
-    render(data);
-  } catch (err) { showMsg(msg, err.message, 'err'); }
-});
-
-// ============ TAB: PENJUALAN ============
-function renderPenjualan(data) {
-  const tbody = document.getElementById('penjualanTable');
-  tbody.innerHTML = data.penjualan.map(p => `
-    <tr>
-      <td>${escapeHtml(p.tanggal)}</td>
-      <td>${escapeHtml(p.nama)}</td>
-      <td class="num mono">${p.print}</td>
-      <td class="num mono">${p.fotocopy}</td>
-      <td class="num mono">${p.totalPemasukan === '' ? '<span style="color:var(--warn)">belum diisi</span>' : formatRupiah(p.totalPemasukan)}</td>
-      <td>${escapeHtml(p.keterangan || '')}</td>
-      <td class="row-actions">
-        <button class="ghost" onclick="editPenjualanPrompt(${p.id}, '${escAttr(p.totalPemasukan)}')">Edit</button>
-        <button class="danger" onclick="deletePenjualanConfirm(${p.id})">Hapus</button>
-      </td>
-    </tr>
-  `).join('') || '<tr><td colspan="7" class="empty">Belum ada data penjualan.</td></tr>';
-}
-
-document.getElementById('btnAddPenjualan').addEventListener('click', async () => {
-  const tanggal = document.getElementById('pjTanggal').value;
-  const nama = document.getElementById('pjNama').value.trim();
-  const print = document.getElementById('pjPrint').value;
-  const fotocopy = document.getElementById('pjFotocopy').value;
-  const totalPemasukan = document.getElementById('pjTotal').value;
-  const msg = document.getElementById('penjualanMsg');
-  if (!nama) { showMsg(msg, 'Isi nama pembayar.', 'err'); return; }
-  try {
-    const res = await api('addPenjualan', { periode: state.periode, tanggal, nama, print, fotocopy, totalPemasukan });
-    document.getElementById('pjNama').value = '';
-    document.getElementById('pjPrint').value = 0;
-    document.getElementById('pjFotocopy').value = 0;
-    document.getElementById('pjTotal').value = '';
-    showMsg(msg, 'Pembayaran dicatat.', 'ok');
-    render(res.data);
-  } catch (err) { showMsg(msg, err.message, 'err'); }
-});
-
-async function editPenjualanPrompt(id, totalLama) {
-  const nominal = prompt('Nominal total pemasukan (Rp):', totalLama === 'undefined' ? '' : totalLama);
-  if (nominal === null) return;
-  try {
-    const data = await api('editPenjualan', { periode: state.periode, id, totalPemasukan: nominal });
-    render(data);
-  } catch (err) { alert(err.message); }
-}
-async function deletePenjualanConfirm(id) {
-  if (!confirm('Hapus data penjualan ini?')) return;
-  try {
-    const data = await api('deletePenjualan', { periode: state.periode, id });
-    render(data);
-  } catch (err) { alert(err.message); }
-}
-
-// ============ TAB: KERTAS ============
-function renderKertas(data) {
-  const tbody = document.getElementById('kertasTable');
-  tbody.innerHTML = data.pengisianKertas.map(k => `
-    <tr><td>${escapeHtml(k.tanggal)}</td><td class="num mono">+${k.jumlah}</td><td>${escapeHtml(k.keterangan || '')}</td></tr>
-  `).join('') || '<tr><td colspan="3" class="empty">Belum ada riwayat isi ulang.</td></tr>';
-}
-
-document.getElementById('btnAddKertas').addEventListener('click', async () => {
-  const tanggal = document.getElementById('kertasTanggal').value;
-  const jumlah = Number(document.getElementById('kertasJumlah').value);
-  const keterangan = document.getElementById('kertasKeterangan').value.trim();
-  const msg = document.getElementById('kertasMsg');
-  if (!jumlah) { showMsg(msg, 'Isi jumlah kertas.', 'err'); return; }
-  try {
-    const data = await api('addPengisianKertas', { periode: state.periode, tanggal, jumlah, keterangan });
-    document.getElementById('kertasJumlah').value = '';
-    document.getElementById('kertasKeterangan').value = '';
-    showMsg(msg, `${jumlah} lembar kertas ditambahkan ke stok.`, 'ok');
-    render(data);
-  } catch (err) { showMsg(msg, err.message, 'err'); }
-});
-
-// ============ TABS ============
-document.querySelectorAll('nav.tabs button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  }
+  $('#logoutBtn').addEventListener('click', ()=>{
+    localStorage.removeItem('printerAdminToken');
+    token = null;
+    $('#app').style.display = 'none';
+    $('#loginScreen').style.display = 'flex';
+    $('#passwordInput').value = '';
   });
-});
+  window.addEventListener('load', async ()=>{
+    const saved = localStorage.getItem('printerAdminToken');
+    if(saved){ token = saved; try{ await bootApp(); } catch(e){ localStorage.removeItem('printerAdminToken'); } }
+  });
 
-// ============ UTIL ============
-function showMsg(el, text, type) {
-  el.innerHTML = `<div class="msg ${type}">${escapeHtml(text)}</div>`;
-  setTimeout(() => { el.innerHTML = ''; }, 6000);
-}
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-function escAttr(s) { return String(s == null ? '' : s).replace(/'/g, "\\'"); }
-function formatRupiah(n) { return 'Rp' + Number(n).toLocaleString('id-ID'); }
+  async function bootApp(){
+    $('#loginScreen').style.display = 'none';
+    $('#app').style.display = 'block';
+    const info = await api('getPeriodeList');
+    currentPeriode = info.periodeAktif;
+    renderPeriodeSelect(info.periodeList, info.periodeAktif);
+    await loadData();
+  }
+
+  // ---- TABS ----
+  $$('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $$('.tab-btn').forEach(b=> b.classList.remove('active'));
+      btn.classList.add('active');
+      $$('.panel').forEach(p=> p.classList.remove('active'));
+      $(`#panel-${btn.dataset.tab}`).classList.add('active');
+    });
+  });
+
+  // ---- PERIODE ----
+  function renderPeriodeSelect(list, active){
+    $('#periodeSelect').innerHTML = list.map(p => `<option value="${p}" ${p===active?'selected':''}>${p}</option>`).join('');
+  }
+  $('#periodeSelect').addEventListener('change', async (e)=>{
+    currentPeriode = e.target.value;
+    await loadData();
+  });
+  $('#openPeriodeBaru').addEventListener('click', ()=>{
+    $('#newNamaPeriode').value = '';
+    $('#newBulanAwal').value = 'Januari';
+    $('#modalPeriodeBaru').classList.add('show');
+  });
+  $('#cancelPeriodeBaru').addEventListener('click', ()=> $('#modalPeriodeBaru').classList.remove('show'));
+  $('#savePeriodeBaru').addEventListener('click', async ()=>{
+    const nama = $('#newNamaPeriode').value.trim();
+    const bulanAwal = $('#newBulanAwal').value.split(',').map(s=>s.trim()).filter(Boolean);
+    if(!nama || !bulanAwal.length){ showToast('Lengkapi nama periode dan bulan awal', 'err'); return; }
+    try{
+      const d = await api('addPeriode', { namaPeriode: nama, bulanAwal });
+      currentPeriode = d.periode;
+      const info = await api('getPeriodeList');
+      renderPeriodeSelect(info.periodeList, info.periodeAktif);
+      $('#modalPeriodeBaru').classList.remove('show');
+      showToast(`Periode ${nama} dibuat`);
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
+
+  // ---- LOAD & RENDER ----
+  async function loadData(){
+    const d = await api('getData', { periode: currentPeriode });
+    applyData(d);
+  }
+  function applyData(d){
+    data = d;
+    $('#stokBesar').textContent = d.stokKertas;
+    renderAnggota();
+    renderPemakaian();
+    renderPenjualan();
+    renderKertas();
+  }
+
+  function quotaClass(sisa){ if(sisa<=0) return 'habis'; if(sisa<=3) return 'sedikit'; return 'penuh'; }
+
+  // ---- TAB: ANGGOTA ----
+  function renderAnggota(){
+    const totalAnggota = data.divisiGroups.reduce((n,g)=> n + g.anggota.length, 0);
+    $('#anggotaInfo').textContent = `${totalAnggota} anggota di periode ${currentPeriode} · ${data.bulanList.length} kolom bulan`;
+    $('#divisiOptions').innerHTML = data.divisiGroups.map(g => `<option value="${esc(g.divisi)}">`).join('');
+
+    const wrap = $('#anggotaList');
+    wrap.innerHTML = '';
+    if(totalAnggota === 0){ wrap.innerHTML = '<div class="empty-msg">Belum ada anggota di periode ini.</div>'; return; }
+
+    data.divisiGroups.forEach(g=>{
+      if(g.anggota.length === 0) return;
+      const title = document.createElement('div');
+      title.className = 'div-title';
+      title.textContent = g.divisi;
+      wrap.appendChild(title);
+
+      g.anggota.forEach(a=>{
+        const row = document.createElement('div');
+        row.className = 'anggota-row';
+        const chips = data.bulanList.map(b=>{
+          const j = a.jatah[b] || { terpakai:0, batas:10 };
+          const sisa = j.batas - j.terpakai;
+          return `<span class="quota-chip ${quotaClass(sisa)}" title="Terpakai ${j.terpakai}/${j.batas}">${sisa}<span class="b">${esc(b.slice(0,3))}</span></span>`;
+        }).join('');
+        row.innerHTML = `
+          <span class="nama">${a.no}. ${esc(a.nama)}</span>
+          <span class="quota-chips">${chips}</span>
+          <button class="icon-btn edit" title="Edit">✎</button>
+          <button class="icon-btn del" title="Hapus">🗑</button>
+        `;
+        row.querySelector('.edit').addEventListener('click', ()=> openEditAnggota(a.nama, g.divisi));
+        row.querySelector('.del').addEventListener('click', ()=> openHapusAnggota(a.nama));
+        wrap.appendChild(row);
+      });
+    });
+  }
+
+  $('#openTambahAnggota').addEventListener('click', ()=>{
+    editAnggotaTarget = null;
+    $('#modalAnggotaTitle').textContent = 'Tambah anggota';
+    $('#anggotaNama').value = '';
+    $('#anggotaDivisi').value = '';
+    $('#modalAnggota').classList.add('show');
+  });
+  function openEditAnggota(nama, divisi){
+    editAnggotaTarget = { nama };
+    $('#modalAnggotaTitle').textContent = 'Edit anggota';
+    $('#anggotaNama').value = nama;
+    $('#anggotaDivisi').value = divisi;
+    $('#modalAnggota').classList.add('show');
+  }
+  $('#cancelAnggota').addEventListener('click', ()=> $('#modalAnggota').classList.remove('show'));
+  $('#saveAnggota').addEventListener('click', async ()=>{
+    const nama = $('#anggotaNama').value.trim();
+    const divisi = $('#anggotaDivisi').value.trim();
+    if(!nama || !divisi){ showToast('Nama dan divisi wajib diisi', 'err'); return; }
+    try{
+      let d;
+      if(editAnggotaTarget){
+        d = await api('editMember', { periode: currentPeriode, nama: editAnggotaTarget.nama, namaBaru: nama, divisiBaru: divisi });
+      } else {
+        d = await api('addMember', { periode: currentPeriode, divisi, nama });
+      }
+      $('#modalAnggota').classList.remove('show');
+      showToast(editAnggotaTarget ? 'Anggota diperbarui' : 'Anggota ditambahkan');
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
+
+  function openHapusAnggota(nama){
+    hapusAnggotaTarget = { nama };
+    $('#hapusAnggotaNama').textContent = nama;
+    $('#modalHapusAnggota').classList.add('show');
+  }
+  $('#cancelHapusAnggota').addEventListener('click', ()=> $('#modalHapusAnggota').classList.remove('show'));
+  $('#confirmHapusAnggota').addEventListener('click', async ()=>{
+    if(!hapusAnggotaTarget) return;
+    try{
+      const d = await api('deleteMember', { periode: currentPeriode, nama: hapusAnggotaTarget.nama });
+      $('#modalHapusAnggota').classList.remove('show');
+      showToast('Anggota dihapus');
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
+
+  $('#openTambahBulan').addEventListener('click', ()=>{
+    $('#newNamaBulan').value = '';
+    $('#modalTambahBulan').classList.add('show');
+  });
+  $('#cancelTambahBulan').addEventListener('click', ()=> $('#modalTambahBulan').classList.remove('show'));
+  $('#saveTambahBulan').addEventListener('click', async ()=>{
+    const namaBulan = $('#newNamaBulan').value.trim();
+    if(!namaBulan){ showToast('Nama bulan wajib diisi', 'err'); return; }
+    try{
+      const d = await api('addBulan', { periode: currentPeriode, namaBulan });
+      $('#modalTambahBulan').classList.remove('show');
+      showToast(`Kolom bulan "${namaBulan}" ditambahkan`);
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
+
+  // ---- TAB: PEMAKAIAN ----
+  function renderPemakaian(){
+    const wrap = $('#pemakaianKategoriList');
+    wrap.innerHTML = data.pemakaianKategori.map(k => `
+      <div class="bar-row"><span class="bar-name">${esc(k.kategori)}</span><span class="bar-val">${k.pemakaian} lembar</span></div>
+    `).join('') || '<div class="empty-msg">Belum ada data.</div>';
+  }
+
+  $('#openPemakaianAnggota').addEventListener('click', ()=>{
+    const allMembers = [];
+    data.divisiGroups.forEach(g => g.anggota.forEach(a => allMembers.push(a.nama)));
+    $('#pmkAnggotaNama').innerHTML = allMembers.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    $('#pmkAnggotaBulan').innerHTML = data.bulanList.map(b => `<option value="${b}">${b}</option>`).join('');
+    $('#pmkAnggotaJumlah').value = '';
+    $('#modalPemakaianAnggota').classList.add('show');
+  });
+  $('#cancelPemakaianAnggota').addEventListener('click', ()=> $('#modalPemakaianAnggota').classList.remove('show'));
+  $('#savePemakaianAnggota').addEventListener('click', async ()=>{
+    const nama = $('#pmkAnggotaNama').value;
+    const bulan = $('#pmkAnggotaBulan').value;
+    const jumlah = Number($('#pmkAnggotaJumlah').value);
+    if(!nama || !bulan || !jumlah){ showToast('Lengkapi semua isian', 'err'); return; }
+    try{
+      const res = await api('catatPemakaianAnggota', { periode: currentPeriode, nama, bulan, jumlah });
+      $('#modalPemakaianAnggota').classList.remove('show');
+      if(res.kelebihan > 0){
+        showToast(`${res.gratis} lembar gratis, ${res.kelebihan} lembar kelebihan masuk ke Penjualan`, 'warn');
+      } else {
+        showToast(`${res.gratis} lembar dicatat, masih dalam jatah gratis`);
+      }
+      applyData(res.data);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
+
+  $('#openPemakaianKategori').addEventListener('click', ()=>{
+    $('#pmkKategoriNama').innerHTML = data.pemakaianKategori.map(k => `<option value="${esc(k.kategori)}">${esc(k.kategori)}</option>`).join('');
+    $('#pmkKategoriJumlah').value = '';
+    $('#modalPemakaianKategori').classList.add('show');
+  });
+  $('#cancelPemakaianKategori').addEventListener('click', ()=> $('#modalPemakaianKategori').classList.remove('show'));
+  $('#savePemakaianKategori').addEventListener('click', async ()=>{
+    const kategori = $('#pmkKategoriNama').value;
+    const jumlah = Number($('#pmkKategoriJumlah').value);
+    if(!kategori || !jumlah){ showToast('Lengkapi semua isian', 'err'); return; }
+    try{
+      const d = await api('catatPemakaianKategori', { periode: currentPeriode, kategori, jumlah });
+      $('#modalPemakaianKategori').classList.remove('show');
+      showToast(`${jumlah} lembar dicatat untuk ${kategori}`);
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
+
+  // ---- TAB: PENJUALAN ----
+  function renderPenjualan(){
+    $('#penjualanInfo').textContent = `${data.penjualan.length} catatan penjualan`;
+    const wrap = $('#penjualanList');
+    wrap.innerHTML = data.penjualan.map(p => `
+      <div class="bar-row">
+        <span class="bar-name">${esc(p.nama)}<span class="bar-sub">${esc(p.tanggal)} · Print ${p.print} · Fotocopy ${p.fotocopy}${p.keterangan ? ' · ' + esc(p.keterangan) : ''}</span></span>
+        <span class="bar-val ${p.totalPemasukan === '' ? 'warn' : ''}">${p.totalPemasukan === '' ? 'belum diisi' : fmtRp(p.totalPemasukan)}</span>
+        <button class="icon-btn edit" title="Edit" data-id="${p.id}">✎</button>
+        <button class="icon-btn del" title="Hapus" data-id="${p.id}">🗑</button>
+      </div>
+    `).join('') || '<div class="empty-msg">Belum ada data penjualan.</div>';
+
+    $$('#penjualanList .icon-btn.edit').forEach(btn=> btn.addEventListener('click', ()=> openEditPenjualan(Number(btn.dataset.id))));
+    $$('#penjualanList .icon-btn.del').forEach(btn=> btn.addEventListener('click', ()=> openHapusPenjualan(Number(btn.dataset.id))));
+  }
+
+  $('#openTambahPenjualan').addEventListener('click', ()=>{
+    editPenjualanTarget = null;
+    $('#modalPenjualanTitle').textContent = 'Tambah pembayaran';
+    $('#pjTanggal').value = new Date().toISOString().slice(0,10);
+    $('#pjNama').value = ''; $('#pjPrint').value = 0; $('#pjFotocopy').value = 0; $('#pjTotal').value = '';
+    $('#modalPenjualan').classList.add('show');
+  });
+  function openEditPenjualan(id){
+    const p = data.penjualan.find(x => x.id === id);
+    if(!p) return;
+    editPenjualanTarget = { id };
+    $('#modalPenjualanTitle').textContent = 'Edit pembayaran';
+    $('#pjTanggal').value = p.tanggal; $('#pjNama').value = p.nama;
+    $('#pjPrint').value = p.print; $('#pjFotocopy').value = p.fotocopy;
+    $('#pjTotal').value = p.totalPemasukan === '' ? '' : p.totalPemasukan;
+    $('#modalPenjualan').classList.add('show');
+  }
+  $('#cancelPenjualan').addEventListener('click', ()=> $('#modalPenjualan').classList.remove('show'));
+  $('#savePenjualan').addEventListener('click', async ()=>{
+    const tanggal = $('#pjTanggal').value;
+    const nama = $('#pjNama').value.trim();
+    const print = $('#pjPrint').value;
+    const fotocopy = $('#pjFotocopy').value;
+    const totalPemasukan = $('#pjTotal').value;
+    if(!nama){ showToast('Nama pembayar wajib diisi', 'err'); return; }
+    try{
+      let d;
+      if(editPenjualanTarget){
+        d = await api('editPenjualan', { periode: currentPeriode, id: editPenjualanTarget.id, tanggal, nama, print, fotocopy, totalPemasukan });
+      } else {
+        const res = await api('addPenjualan', { periode: currentPeriode, tanggal, nama, print, fotocopy, totalPemasukan });
+        d = res.data;
+      }
+      $('#modalPenjualan').classList.remove('show');
+      showToast('Pembayaran disimpan');
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
+
+  function openHapusPenjualan(id){
+    const p = data.penjualan.find(x => x.id === id);
+    hapusPenjualanTarget = { id };
+    $('#hapusPenjualanNama').textContent = p ? `${p.nama} · ${p.tanggal}` : '';
+    $('#modalHapusPenjualan').classList.add('show');
+  }
+  $('#cancelHapusPenjualan').addEventListener('click', ()=> $('#modalHapusPenjualan').classList.remove('show'));
+  $('#confirmHapusPenjualan').addEventListener('click', async ()=>{
+    if(!hapusPenjualanTarget) return;
+    try{
+      const d = await api('deletePenjualan', { periode: currentPeriode, id: hapusPenjualanTarget.id });
+      $('#modalHapusPenjualan').classList.remove('show');
+      showToast('Data penjualan dihapus');
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
+
+  // ---- TAB: KERTAS ----
+  function renderKertas(){
+    const wrap = $('#kertasList');
+    wrap.innerHTML = data.pengisianKertas.map(k => `
+      <div class="bar-row">
+        <span class="bar-name">${esc(k.tanggal)}<span class="bar-sub">${esc(k.keterangan || '')}</span></span>
+        <span class="bar-val" style="color:var(--teal);">+${k.jumlah}</span>
+      </div>
+    `).join('') || '<div class="empty-msg">Belum ada riwayat isi ulang.</div>';
+  }
+
+  $('#openTambahKertas').addEventListener('click', ()=>{
+    $('#kertasTanggal').value = new Date().toISOString().slice(0,10);
+    $('#kertasJumlah').value = '';
+    $('#kertasKeterangan').value = '';
+    $('#modalKertas').classList.add('show');
+  });
+  $('#cancelKertas').addEventListener('click', ()=> $('#modalKertas').classList.remove('show'));
+  $('#saveKertas').addEventListener('click', async ()=>{
+    const tanggal = $('#kertasTanggal').value;
+    const jumlah = Number($('#kertasJumlah').value);
+    const keterangan = $('#kertasKeterangan').value.trim();
+    if(!jumlah){ showToast('Isi jumlah kertas', 'err'); return; }
+    try{
+      const d = await api('addPengisianKertas', { periode: currentPeriode, tanggal, jumlah, keterangan });
+      $('#modalKertas').classList.remove('show');
+      showToast(`${jumlah} lembar kertas ditambahkan ke stok`);
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
 </script>
 </body>
 </html>
