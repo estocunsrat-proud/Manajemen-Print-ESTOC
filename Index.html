@@ -82,6 +82,16 @@
   .div-title{ color:var(--gold); font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; margin:20px 0 8px; }
   .div-title:first-child{ margin-top:0; }
 
+  /* ---- tabel mini jatah (mirip sheet Jatah, nama bulan + x/10) ---- */
+  .matrix-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; margin-bottom:8px; }
+  table.jatah-mini{ border-collapse:collapse; font-size:12.5px; white-space:nowrap; width:100%; }
+  table.jatah-mini th, table.jatah-mini td{ padding:8px 12px; border-bottom:1px solid var(--line); text-align:center; }
+  table.jatah-mini thead th{ background:var(--navy-panel-2); font-family:'Oswald',sans-serif; font-weight:600; font-size:11.5px; color:var(--gold); }
+  table.jatah-mini td.col-nama, table.jatah-mini th.col-nama{ position:sticky; left:0; background:var(--navy-panel); text-align:left; font-weight:600; min-width:150px; }
+  table.jatah-mini thead th.col-nama{ background:var(--navy-panel-2); }
+  table.jatah-mini tr.div-row td{ background:var(--navy-deep); color:var(--gold); font-family:'Oswald',sans-serif; font-weight:600; text-align:left; position:sticky; left:0; }
+  table.jatah-mini td.habis{ color:var(--rust); font-weight:700; }
+
   /* ---- stat card (stok kertas) ---- */
   .stat-cards{ display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:18px; }
   .stat-card{
@@ -202,6 +212,9 @@
           <button class="btn-primary" id="openPemakaianAnggota">+ Catat pemakaian anggota</button>
         </div>
       </div>
+      <div class="div-title">Jatah anggota (Sheet Jatah)</div>
+      <div class="matrix-scroll"><table class="jatah-mini" id="jatahMiniTable"></table></div>
+
       <div class="div-title">Rekap pemakaian per kategori (tanpa kuota)</div>
       <div id="pemakaianKategoriList"></div>
     </div>
@@ -374,7 +387,7 @@
 
 <script>
   // GANTI dengan URL Web App hasil deploy Apps Script Anda (Deploy > New deployment > Web app)
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqxphpCthV6d198EzGbthSxzz9DHIe5vnn3xX3cfzlV4TvIcx2GtRwMUBnw7ivs6ds/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_DEPLOYMENT_ID/exec';
 
   let token = null;
   let periodeList = [];
@@ -496,6 +509,7 @@
     data = d;
     $('#stokBesar').textContent = d.stokKertas;
     renderAnggota();
+    renderJatahMini();
     renderPemakaian();
     renderPenjualan();
     renderKertas();
@@ -606,6 +620,31 @@
   });
 
   // ---- TAB: PEMAKAIAN ----
+  function renderJatahMini(){
+    const table = $('#jatahMiniTable');
+    const totalAnggota = data.divisiGroups.reduce((n,g)=> n + g.anggota.length, 0);
+    if(totalAnggota === 0){ table.closest('.matrix-scroll').innerHTML = '<div class="empty-msg">Belum ada anggota di periode ini.</div>'; return; }
+
+    let html = '<thead><tr><th class="col-nama">Nama</th>' +
+      data.bulanList.map(b => `<th>${esc(b)}</th>`).join('') + '</tr></thead><tbody>';
+
+    data.divisiGroups.forEach(g=>{
+      if(g.anggota.length === 0) return;
+      html += `<tr class="div-row"><td colspan="${1 + data.bulanList.length}">${esc(g.divisi)}</td></tr>`;
+      g.anggota.forEach(a=>{
+        html += `<tr><td class="col-nama">${esc(a.nama)}</td>`;
+        data.bulanList.forEach(b=>{
+          const j = a.jatah[b] || { terpakai:0, batas:10 };
+          const cls = j.terpakai >= j.batas ? 'habis' : '';
+          html += `<td class="${cls}">${j.terpakai}/${j.batas}</td>`;
+        });
+        html += '</tr>';
+      });
+    });
+    html += '</tbody>';
+    table.innerHTML = html;
+  }
+
   function renderPemakaian(){
     const wrap = $('#pemakaianKategoriList');
     wrap.innerHTML = data.pemakaianKategori.map(k => `
