@@ -91,6 +91,8 @@
   table.jatah-mini thead th.col-nama{ background:var(--navy-panel-2); }
   table.jatah-mini tr.div-row td{ background:var(--navy-deep); color:var(--gold); font-family:'Oswald',sans-serif; font-weight:600; text-align:left; position:sticky; left:0; }
   table.jatah-mini td.habis{ color:var(--rust); font-weight:700; }
+  table.jatah-mini td.editable-cell{ cursor:pointer; }
+  table.jatah-mini td.editable-cell:hover{ background:var(--navy-panel-2); color:var(--gold); }
 
   /* ---- stat card (stok kertas) ---- */
   .stat-cards{ display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:18px; }
@@ -332,6 +334,34 @@
     </div>
   </div>
 
+  <!-- modal: edit jumlah pemakaian kategori -->
+  <div class="modal-bg" id="modalEditKategori">
+    <div class="modal">
+      <h3>Edit jumlah pemakaian</h3>
+      <p class="sub" id="editKategoriNama"></p>
+      <label>Jumlah lembar (total, bukan tambahan)</label>
+      <input type="number" min="0" id="editKategoriJumlah">
+      <div class="modal-actions">
+        <button class="cancel" id="cancelEditKategori">Batal</button>
+        <button class="save" id="saveEditKategori">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal: edit jatah (terpakai) anggota per bulan -->
+  <div class="modal-bg" id="modalEditJatah">
+    <div class="modal">
+      <h3>Edit jumlah terpakai</h3>
+      <p class="sub" id="editJatahInfo"></p>
+      <label>Terpakai (dari jatah 10)</label>
+      <input type="number" min="0" max="10" id="editJatahJumlah">
+      <div class="modal-actions">
+        <button class="cancel" id="cancelEditJatah">Batal</button>
+        <button class="save" id="saveEditJatah">Simpan</button>
+      </div>
+    </div>
+  </div>
+
   <!-- modal: tambah/edit penjualan -->
   <div class="modal-bg" id="modalPenjualan">
     <div class="modal">
@@ -392,6 +422,8 @@
   let hapusAnggotaTarget = null;  // { nama }
   let editPenjualanTarget = null; // { id } saat edit, null saat tambah
   let hapusPenjualanTarget = null;// { id }
+  let editKategoriTarget = null;  // { kategori }
+  let editJatahTarget = null;     // { nama, bulan }
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -640,21 +672,71 @@
         data.bulanList.forEach(b=>{
           const j = a.jatah[b] || { terpakai:0, batas:10 };
           const cls = j.terpakai >= j.batas ? 'habis' : '';
-          html += `<td class="${cls}">${j.terpakai}/${j.batas}</td>`;
+          html += `<td class="${cls} editable-cell" data-nama="${escAttr(a.nama)}" data-bulan="${escAttr(b)}" data-terpakai="${j.terpakai}" title="Sentuh untuk edit">${j.terpakai}/${j.batas}</td>`;
         });
         html += '</tr>';
       });
     });
     html += '</tbody>';
     table.innerHTML = html;
+
+    $$('#jatahMiniTable .editable-cell').forEach(td=>{
+      td.addEventListener('click', ()=> openEditJatah(td.dataset.nama, td.dataset.bulan, Number(td.dataset.terpakai)));
+    });
   }
+
+  function openEditJatah(nama, bulan, terpakaiSaatIni){
+    editJatahTarget = { nama, bulan };
+    $('#editJatahInfo').textContent = `${nama} — ${bulan}`;
+    $('#editJatahJumlah').value = terpakaiSaatIni;
+    $('#modalEditJatah').classList.add('show');
+  }
+  $('#cancelEditJatah').addEventListener('click', ()=> $('#modalEditJatah').classList.remove('show'));
+  $('#saveEditJatah').addEventListener('click', async ()=>{
+    if(!editJatahTarget) return;
+    const terpakai = Number($('#editJatahJumlah').value);
+    if(isNaN(terpakai) || terpakai < 0){ showToast('Jumlah tidak boleh negatif', 'err'); return; }
+    try{
+      const d = await api('editJatahAnggota', { periode: currentPeriode, nama: editJatahTarget.nama, bulan: editJatahTarget.bulan, terpakai });
+      $('#modalEditJatah').classList.remove('show');
+      showToast('Jumlah terpakai diperbarui');
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
 
   function renderPemakaian(){
     const wrap = $('#pemakaianKategoriList');
     wrap.innerHTML = data.pemakaianKategori.map(k => `
-      <div class="bar-row"><span class="bar-name">${esc(k.kategori)}</span><span class="bar-val">${k.pemakaian} lembar</span></div>
+      <div class="bar-row">
+        <span class="bar-name">${esc(k.kategori)}</span>
+        <span class="bar-val">${k.pemakaian} lembar</span>
+        <button class="icon-btn edit" title="Edit jumlah" data-kategori="${escAttr(k.kategori)}" data-jumlah="${k.pemakaian}">✎</button>
+      </div>
     `).join('') || '<div class="empty-msg">Belum ada data.</div>';
+
+    $$('#pemakaianKategoriList .icon-btn.edit').forEach(btn=>{
+      btn.addEventListener('click', ()=> openEditKategori(btn.dataset.kategori, Number(btn.dataset.jumlah)));
+    });
   }
+
+  function openEditKategori(kategori, jumlahSaatIni){
+    editKategoriTarget = { kategori };
+    $('#editKategoriNama').textContent = kategori;
+    $('#editKategoriJumlah').value = jumlahSaatIni;
+    $('#modalEditKategori').classList.add('show');
+  }
+  $('#cancelEditKategori').addEventListener('click', ()=> $('#modalEditKategori').classList.remove('show'));
+  $('#saveEditKategori').addEventListener('click', async ()=>{
+    if(!editKategoriTarget) return;
+    const jumlah = Number($('#editKategoriJumlah').value);
+    if(isNaN(jumlah) || jumlah < 0){ showToast('Jumlah tidak boleh negatif', 'err'); return; }
+    try{
+      const d = await api('editPemakaianKategori', { periode: currentPeriode, kategori: editKategoriTarget.kategori, jumlah });
+      $('#modalEditKategori').classList.remove('show');
+      showToast('Jumlah pemakaian diperbarui');
+      applyData(d);
+    } catch(err){ showToast(err.message, 'err'); }
+  });
 
   const NAMA_BULAN = ['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
   function monthIndex(namaBulan){
