@@ -672,7 +672,7 @@
         data.bulanList.forEach(b=>{
           const j = a.jatah[b] || { terpakai:0, batas:10 };
           const cls = j.terpakai >= j.batas ? 'habis' : '';
-          html += `<td class="${cls} editable-cell" data-nama="${escAttr(a.nama)}" data-bulan="${escAttr(b)}" data-terpakai="${j.terpakai}" title="Sentuh untuk edit">${j.terpakai}/${j.batas}</td>`;
+          html += `<td class="${cls} editable-cell" data-nama="${esc(a.nama)}" data-bulan="${esc(b)}" data-terpakai="${j.terpakai}" title="Sentuh untuk edit">${j.terpakai}/${j.batas}</td>`;
         });
         html += '</tr>';
       });
@@ -710,7 +710,7 @@
       <div class="bar-row">
         <span class="bar-name">${esc(k.kategori)}</span>
         <span class="bar-val">${k.pemakaian} lembar</span>
-        <button class="icon-btn edit" title="Edit jumlah" data-kategori="${escAttr(k.kategori)}" data-jumlah="${k.pemakaian}">✎</button>
+        <button class="icon-btn edit" title="Edit jumlah" data-kategori="${esc(k.kategori)}" data-jumlah="${k.pemakaian}">✎</button>
       </div>
     `).join('') || '<div class="empty-msg">Belum ada data.</div>';
 
